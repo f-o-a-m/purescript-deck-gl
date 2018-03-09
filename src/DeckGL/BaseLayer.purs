@@ -17,7 +17,7 @@ foreign import makeLngLatElev :: Number -> Number -> Number -> LngLatElev
 foreign import data Position :: Type
 foreign import getPosLat :: Position -> Number
 foreign import getPosLng :: Position -> Number
-foreign import makePosition :: Number -> Number -> LngLatElev
+foreign import makePosition :: Number -> Number -> Position
 
 -- | The picking engine returns objects of type `PickingInfo a` describing what
 -- | layer and object were picked.
