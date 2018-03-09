@@ -1,8 +1,9 @@
 module DeckGL.IconLayer where
 
-import DeckGL.Layer (Layer, BaseLayerProps, LngLatElev)
+import DeckGL.BaseLayer (Layer, BaseLayerProps, LngLatElev)
 import Data.StrMap
 
+foreign import defaultIconProps :: forall d eff . IconLayerProps d eff
 foreign import makeIconLayer :: forall d eff . IconLayerProps d eff -> Layer
 
 -- | An `Icon` represents a datapoint in a layer. The image for the icon is called an

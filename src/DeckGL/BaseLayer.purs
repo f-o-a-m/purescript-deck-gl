@@ -1,4 +1,4 @@
-module DeckGL.Layer where
+module DeckGL.BaseLayer where
 
 import Control.Monad.Eff.Uncurried (EffFn1)
 
@@ -11,8 +11,13 @@ foreign import data LngLatElev :: Type
 
 foreign import getLat :: LngLatElev -> Number
 foreign import getLng :: LngLatElev -> Number
-foreign import getElevation :: LngLatElev -> Number
-foreign import mkLngLatElev :: Number -> Number -> Number -> LngLatElev
+foreign import getElev :: LngLatElev -> Number
+foreign import makeLngLatElev :: Number -> Number -> Number -> LngLatElev
+
+foreign import data Position :: Type
+foreign import getPosLat :: Position -> Number
+foreign import getPosLng :: Position -> Number
+foreign import makePosition :: Number -> Number -> LngLatElev
 
 -- | The picking engine returns objects of type `PickingInfo a` describing what
 -- | layer and object were picked.
@@ -60,4 +65,13 @@ type BaseLayerProps eff rest a =
   , highlightedObjectIndex :: Int
   , highlightColor :: Array Int
   | rest
+  }
+
+type LightSettings =
+  { lightsPosition :: Array Number
+  , ambientRatio :: Number
+  , diffuseRatio :: Number
+  , specularRatio :: Number
+  , lightsStrength :: Array Number
+  , numberOfLights :: Int
   }
