@@ -1,5 +1,5 @@
 const DeckGL = require('deck.gl');
 
-exports.mkLayer = function (props) {
+exports.makeIconLayer = function (props) {
     return new DeckGL.IconLayer(props);
 };

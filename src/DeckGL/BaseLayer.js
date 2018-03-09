@@ -1,15 +1,13 @@
-exports.getLat = function (latLng) {
-    return latLng[1];
-};
-
 exports.getLng = function (latLng) {
     return latLng[0];
 };
 
-exports.mkLngLat = function (lng) {
-    return function (lat) {
-        return [lng, lat];
-    };
+exports.getLat = function (latLng) {
+    return latLng[1];
+};
+
+exports.getElev = function (latLng) {
+    return latLng[2];
 };
 
 exports.mkLngLatElev = function (lng) {
