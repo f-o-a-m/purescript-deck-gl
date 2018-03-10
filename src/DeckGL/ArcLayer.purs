@@ -1,13 +1,13 @@
 module DeckGL.ArcLayer where
 
-import DeckGL.BaseLayer (BaseLayerProps, Layer, Position)
+import DeckGL.BaseLayer (BaseLayerProps, Layer, LngLat)
 
 foreign import defaultArcProps :: forall eff . ArcLayerProps eff
 foreign import makeArcLayer :: forall eff . ArcLayerProps eff -> Layer
 
 type ArcData =
-    { sourcePosition :: Position
-    , targetPosition :: Position
+    { sourcePosition :: LngLat
+    , targetPosition :: LngLat
     , color :: Array Int
     }
 

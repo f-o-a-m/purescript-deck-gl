@@ -1,13 +1,13 @@
 module DeckGL.HexagonLayer where
 
-import DeckGL.BaseLayer (Layer, BaseLayerProps, LightSettings, Position)
+import DeckGL.BaseLayer (Layer, BaseLayerProps, LightSettings, LngLat)
 
 foreign import defaultHexagonProps :: forall eff . HexagonLayerProps eff
 
 foreign import makeHexagonLayer :: forall eff . HexagonLayerProps eff -> Layer
 
 type HexData =
-  { position :: Array Position
+  { position :: Array LngLat
   }
 
 -- | - `coverage`: The final radius of hexagon is calculated by coverage * radius. Note:

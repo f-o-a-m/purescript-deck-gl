@@ -1,6 +1,6 @@
 module DeckGL.IconLayer where
 
-import DeckGL.BaseLayer (Layer, BaseLayerProps, LngLatElev)
+import DeckGL.BaseLayer (Layer, BaseLayerProps, LngLat)
 import Data.StrMap
 
 foreign import defaultIconProps :: forall d eff . IconLayerProps d eff
@@ -23,7 +23,7 @@ type Icon =
 type IconMapping = StrMap Icon
 
 type IconData d =
-  { position :: LngLatElev
+  { position :: LngLat
   , icon :: String
   , size :: Int
   , color :: Array Int

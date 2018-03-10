@@ -7,17 +7,12 @@ foreign import data LayerClass :: Type
 
 -- | The deck.gl representation of a longitude latitude pair is
 -- | an array of three numbers, the longitude latitude and altitude.
-foreign import data LngLatElev :: Type
+foreign import data LngLat :: Type
 
-foreign import getLat :: LngLatElev -> Number
-foreign import getLng :: LngLatElev -> Number
-foreign import getElev :: LngLatElev -> Number
-foreign import makeLngLatElev :: Number -> Number -> Number -> LngLatElev
-
-foreign import data Position :: Type
-foreign import getPosLat :: Position -> Number
-foreign import getPosLng :: Position -> Number
-foreign import makePosition :: Number -> Number -> Position
+foreign import getLat :: LngLat -> Number
+foreign import getLng :: LngLat -> Number
+foreign import getElev :: LngLat -> Number
+foreign import makeLngLat :: Number -> Number -> LngLat
 
 -- | The picking engine returns objects of type `PickingInfo a` describing what
 -- | layer and object were picked.
@@ -35,7 +30,7 @@ type PickingInfo a =
   , object :: a
   , x :: Int
   , y :: Int
-  , lngLat :: LngLatElev
+  , lngLat :: LngLat
   }
 
 -- | `BaseLayerProps eff rest a` are basic properties that all layers share. There are
