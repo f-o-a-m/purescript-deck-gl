@@ -23,7 +23,6 @@ foreign import makeLngLat :: Number -> Number -> LngLat
 -- | - `y`: Mouse position `y` relative to the viewport.
 -- | - `lnglat`: Mouse position in geospatial coordinates. Only applies if layer.props.coordinateSystem
 -- |   is a geospatial mode such as `COORDINATE_SYSTEM.LNGLAT`
-
 type PickingInfo a =
   { layer :: Layer
   , index :: Int
@@ -31,6 +30,16 @@ type PickingInfo a =
   , x :: Int
   , y :: Int
   , lngLat :: LngLat
+  }
+
+-- | Some layers require light settings to customize the rendering.
+type LightSettings =
+  { lightsPosition :: Array Number
+  , ambientRatio :: Number
+  , diffuseRatio :: Number
+  , specularRatio :: Number
+  , lightsStrength :: Array Number
+  , numberOfLights :: Int
   }
 
 -- | `BaseProps eff rest a` are basic properties that all layers share. There are
@@ -47,7 +56,6 @@ type PickingInfo a =
 -- | - `highlightColor`: RGBA array for highlighted objects.
 -- | Note: If a callback returns a truthy value, the hover event is marked as handled and will not bubble up to
 -- | the onLayerClick callback of the DeckGL canvas.
-
 type BaseProps eff rest a =
   { id :: String
   , data :: Array a
@@ -62,11 +70,3 @@ type BaseProps eff rest a =
   | rest
   }
 
-type LightSettings =
-  { lightsPosition :: Array Number
-  , ambientRatio :: Number
-  , diffuseRatio :: Number
-  , specularRatio :: Number
-  , lightsStrength :: Array Number
-  , numberOfLights :: Int
-  }
