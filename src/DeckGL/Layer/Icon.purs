@@ -1,6 +1,6 @@
-module DeckGL.IconLayer where
+module DeckGL.Layer.Icon where
 
-import DeckGL.BaseLayer (Layer, BaseLayerProps, LngLat)
+import DeckGL.BaseProps (Layer, BaseProps, LngLat)
 import Data.StrMap
 
 foreign import defaultIconProps :: forall d eff . IconLayerProps d eff
@@ -34,7 +34,7 @@ type IconData d =
 -- | - `iconAtlas`: The url of the image for the icon atlas.
 -- | - `iconMapping`: A mapping of icon names to `Icon`s.
 -- | - `sizeScale`: Icon size multiplier.
-type IconLayerProps d eff = BaseLayerProps
+type IconLayerProps d eff = BaseProps
   eff
   ( iconAtlas :: String
   , iconMapping :: IconMapping

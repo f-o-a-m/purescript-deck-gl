@@ -1,4 +1,4 @@
-module DeckGL.BaseLayer where
+module DeckGL.BaseProps where
 
 import Control.Monad.Eff.Uncurried (EffFn1)
 
@@ -33,7 +33,7 @@ type PickingInfo a =
   , lngLat :: LngLat
   }
 
--- | `BaseLayerProps eff rest a` are basic properties that all layers share. There are
+-- | `BaseProps eff rest a` are basic properties that all layers share. There are
 -- | many properties, but they all have sensible defaults in the library should you choose
 -- | not to set them. See https://github.com/uber/deck.gl/blob/master/docs/api-reference/layer.md.
 -- | - `id`: A unique name for the layer.
@@ -48,7 +48,7 @@ type PickingInfo a =
 -- | Note: If a callback returns a truthy value, the hover event is marked as handled and will not bubble up to
 -- | the onLayerClick callback of the DeckGL canvas.
 
-type BaseLayerProps eff rest a =
+type BaseProps eff rest a =
   { id :: String
   , data :: Array a
   , visible :: Boolean

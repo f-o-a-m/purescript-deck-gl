@@ -1,6 +1,6 @@
-module DeckGL.ScreenGridLayer where
+module DeckGL.Layer.ScreenGrid where
 
-import DeckGL.BaseLayer (Layer, BaseLayerProps, LngLat)
+import DeckGL.BaseProps (Layer, BaseProps, LngLat)
 
 foreign import defaultScreenGridProps :: forall eff . ScreenGridLayerProps eff
 foreign import makeScreenGridLayer :: forall eff . ScreenGridLayerProps eff -> Layer
@@ -13,7 +13,7 @@ type ScreenGridData =
 -- | - `cellSizePixels`: Unit width/height of the bins.
 -- | - `mincolor`: RGBA array, minimal color that can be rendered by a tile.
 -- | - `maxcolor`: RGBA array, maximal color that can be rendered by a tile.
-type ScreenGridLayerProps eff = BaseLayerProps
+type ScreenGridLayerProps eff = BaseProps
     eff
     ( cellSizePixels :: Int
     , minColor :: Array Int

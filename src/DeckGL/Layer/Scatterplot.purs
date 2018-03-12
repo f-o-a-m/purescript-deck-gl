@@ -1,6 +1,6 @@
-module DeckGL.ScatterplotLayer where
+module DeckGL.Layer.Scatterplot where
 
-import DeckGL.BaseLayer (Layer, BaseLayerProps, LngLat)
+import DeckGL.BaseProps (Layer, BaseProps, LngLat)
 
 foreign import defaultScatterplotProps :: forall eff . ScatterplotLayerProps eff
 foreign import makeScatterplotLayer :: forall eff . ScatterplotLayerProps eff -> Layer
@@ -13,7 +13,7 @@ type ScatterplotData =
 
 -- | - `outline`: Only draw the outline of the points
 -- | - `fp64`: Whether the layer should be rendered in high-precision 64-bit mode.
-type ScatterplotLayerProps eff = BaseLayerProps
+type ScatterplotLayerProps eff = BaseProps
     eff
     ( fp64 :: Boolean
     , outline :: Boolean

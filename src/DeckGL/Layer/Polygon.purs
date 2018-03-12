@@ -1,6 +1,6 @@
-module DeckGL.PolygonLayer where
+module DeckGL.Layer.Polygon where
 
-import DeckGL.BaseLayer (Layer, BaseLayerProps, LngLat)
+import DeckGL.BaseProps (Layer, BaseProps, LngLat)
 
 foreign import defaultPolygonProps :: forall eff. PolygonLayerProps eff
 
@@ -14,7 +14,7 @@ type PolygonData =
   , color :: Array Int
   }
 
-type PolygonLayerProps eff = BaseLayerProps
+type PolygonLayerProps eff = BaseProps
     eff
     (stroked :: Boolean
     ,lineWidthMinPixels :: Int

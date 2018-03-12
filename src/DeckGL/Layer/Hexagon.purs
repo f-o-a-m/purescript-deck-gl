@@ -1,6 +1,6 @@
-module DeckGL.HexagonLayer where
+module DeckGL.Layer.Hexagon where
 
-import DeckGL.BaseLayer (Layer, BaseLayerProps, LightSettings, LngLat)
+import DeckGL.BaseProps (Layer, BaseProps, LightSettings, LngLat)
 
 foreign import defaultHexagonProps :: forall eff . HexagonLayerProps eff
 
@@ -21,7 +21,7 @@ type HexData =
 -- | in each cell. If set to false, all cells will be flat.
 -- | `radius`: Radius of hexagons measured in meters.
 
-type HexagonLayerProps eff = BaseLayerProps
+type HexagonLayerProps eff = BaseProps
     eff
     ( coverage :: Int
     , colorRange :: Array (Array Int)
