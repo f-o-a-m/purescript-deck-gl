@@ -3,6 +3,6 @@
   "private": true,
   "dependencies": {
     "purescript-react": "^5.1.0",
-    "purescript-deck-gl": "../.."
+    "purescript-deck-gl": "../..#initial-branch"
   }
 }
