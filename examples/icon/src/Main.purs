@@ -1,11 +1,18 @@
 module Main where
 
 import Prelude
-import Control.Monad.Eff.Console (CONSOLE, log)
+import Control.Monad.Aff (Aff)
 import Control.Monad.Eff (Eff)
+import Control.Monad.Eff.Exception (error)
+import Control.Monad.Eff.Console (CONSOLE, log)
 import Control.Monad.Eff.Uncurried (mkEffFn1)
+import Control.Monad.Error.Class (throwError)
+import Data.Argonaut (class DecodeJson, Json, decodeJson)
+import Data.Argonaut.Decode.Generic (gDecodeJson)
+import Data.Either (either)
+import Data.Generic (class Generic)
 import Data.Maybe (fromJust)
-import Data.Newtype (unwrap)
+import Data.Newtype (class Newtype, unwrap)
 import Data.Record.Builder (merge, build)
 import DOM (DOM)
 import DOM.HTML (window)
@@ -13,6 +20,7 @@ import DOM.HTML.Types (htmlDocumentToDocument)
 import DOM.HTML.Window as Window
 import DOM.Node.NonElementParentNode (getElementById)
 import DOM.Node.Types (Element, ElementId(..), documentToNonElementParentNode)
+import Network.HTTP.Affjax (get, AJAX)
 import MapGL as MapGL
 import Partial.Unsafe (unsafePartial)
 import React as R
@@ -63,6 +71,28 @@ initialViewport = do
                    , bearing: 0.0
                    }
 
+newtype Meteorite =
+  Mereorite { class :: String
+            , coordinates :: Array Number
+            , mass :: String
+            , name :: String
+            , year :: Int
+            }
+
+derive instance newtypeMeteorite :: Newtype Meteorite _
+
+derive instance genericMeteorite :: Generic Meteorite
+
+instance decodeJsonMeteorite :: DecodeJson Meteorite where
+  decodeJson = gDecodeJson
+
+getMeteoriteData :: forall e . Aff (ajax :: AJAX | e) (Array Meteorite)
+getMeteoriteData = do
+  (meteorResp :: Json) <-  _.response <$> get meteoritesUrl
+  either (throwError <<< error) pure $ decodeJson meteorResp
+
+meteoritesUrl :: String
+meteoritesUrl = "https://github.com/uber-common/deck.gl-data/blob/master/examples/icon/meteorites.json"
 
 mapStyle :: String
 mapStyle = "mapbox://styles/mapbox/dark-v9"
