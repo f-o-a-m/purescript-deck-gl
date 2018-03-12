@@ -9,7 +9,6 @@
     "purescript-react-map-gl": "git://github.com/f-o-a-m/purescript-react-map-gl.git#ae9ac58003172975533aeffa10c7f151adb47881",
     "purescript-deck-gl": "../..#initial-branch",
     "purescript-argonaut-aeson-generic": "^0.1.0",
-    "purescript-generics-rep": "^5.4.0",
     "purescript-affjax": "^5.0.0"
   }
 }
