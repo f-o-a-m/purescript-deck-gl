@@ -71,6 +71,28 @@ mapSpec = R.spec' (const initialViewport) render
       let mapProps = build mapProps' vp
       pure $ R.createFactory MapGL.mapGL mapProps
 
+    getInitialState :: R.GetInitialState props MapState (dom :: DOM | eff)
+    getInitialState this = do
+      vp <- intialViewport
+      pure $ { viewport: vp
+             , iconAtlas: "./data/location-icon-atlas.png"
+             , iconMapping: StrMap.empty
+             , data: []
+             }
+
+    onComponentWillMount :: R.ComponentWillMount props MapState (ajax :: AJAX)
+    onComponentWillMound this = void <<< launchAff $ do
+      iconMapping <- buildIconMapping
+      meteorites <- getMeteoriteData
+      let meteorites' = map 
+
+type MapState =
+  { viewport :: Viewport
+  , iconAtlas :: String
+  , iconMapping :: Icon.IconMapping
+  , data :: Array (IconData (meteorite :: Meteorite))
+  }
+
 initialViewport :: forall eff. Eff (dom :: DOM | eff) MapGL.Viewport
 initialViewport = do
   win <- window
@@ -126,7 +148,7 @@ buildIconMapping = do
 -- | Icon Layer Component
 type MeteoriteProps =
   { viewport :: MapGL.Viewport
-  , data :: Array (Icon.IconData (meteorite :: Meteorite))
+  , data :: Array Meteorite
   , iconMapping :: Icon.IconMapping
   , iconAtlas :: String
   }
@@ -146,6 +168,7 @@ iconLayerSpec = (R.spec' getInitialState render) {componentWillReceiveProps = re
       state <- R.readState this
       let vp = unwrap props.viewport
           currentZoom = floor vp.zoom
+          meteoriteDate = flip map $ \m -> {meteorite: m}
           iconLayer = Icon.makeIconLayer $
                         ( Icon.defaultIconProps { id = "icon"
                                                 , data = props.data

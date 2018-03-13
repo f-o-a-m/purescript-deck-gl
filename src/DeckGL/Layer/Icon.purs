@@ -24,14 +24,7 @@ type Icon =
 
 type IconMapping = StrMap Icon
 
-type IconData d =
-  { position :: LngLat
-  , icon :: String
-  , size :: Int
-  , color :: Array Int
-  , angle :: Number
-  | d
-  }
+type IconData d = {| d}
 
 -- | - `iconAtlas`: The url of the image for the icon atlas.
 -- | - `iconMapping`: A mapping of icon names to `Icon`s.
