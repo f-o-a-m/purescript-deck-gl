@@ -98,7 +98,7 @@ type MeteoriteProps =
   , zoom :: Number
   , bearing :: Number
   , pitch :: Number
-  , data :: Array Meteorite
+  , data :: Array (Icon.IconData (meteorite :: Meteorite))
   , zoomLevels :: ZoomLevels
   , iconMapping :: Icon.IconMapping
   , iconAtlas :: String
@@ -119,12 +119,12 @@ iconLayerSpec = R.spec unit render
                                                 , iconAtlas = props.iconAtlas
                                                 , iconMapping = props.iconMapping
                                                 , sizeScale = 2.0 * iconSize
-                                                , getPosition = meteoriteLngLat
-                                                , getIcon = \m ->
-                                                    let mId = meteoriteId m
+                                                , getPosition = \{meteorite} -> meteoriteLngLat meteorite
+                                                , getIcon = \{meteorite} ->
+                                                    let mId = meteoriteId meteorite
                                                     in fromMaybe "marker" (_.icon <$> Map.lookup (Tuple mId currentZoom) props.zoomLevels)
-                                                , getSize = \m ->
-                                                    let mId = meteoriteId m
+                                                , getSize = \{meteorite} ->
+                                                    let mId = meteoriteId meteorite
                                                     in fromMaybe 1.0 (_.size <$> Map.lookup (Tuple mId currentZoom) props.zoomLevels)
 
                                                 , autoHighlight = true
