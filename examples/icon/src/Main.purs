@@ -4,7 +4,6 @@ import Prelude
 import Control.Monad.Aff (Aff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Exception (error)
-import Control.Monad.Eff.Console (CONSOLE, log)
 import Control.Monad.Eff.Uncurried (mkEffFn1)
 import Control.Monad.Error.Class (throwError)
 import Data.Argonaut (class DecodeJson, Json, decodeJson)
@@ -26,7 +25,6 @@ import Partial.Unsafe (unsafePartial)
 import React as R
 import ReactDOM (render)
 
-
 main :: forall eff. Eff (dom :: DOM | eff) Unit
 main = void  $ elm' >>= render (R.createFactory mapClass unit)
   where
@@ -37,18 +35,16 @@ main = void  $ elm' >>= render (R.createFactory mapClass unit)
       elm <- getElementById (ElementId "app") (documentToNonElementParentNode (htmlDocumentToDocument doc))
       pure $ unsafePartial (fromJust elm)
 
+-- | Map Component
 mapClass :: forall props . R.ReactClass props
 mapClass = R.createClass mapSpec
 
-mapSpec ::  forall props eff . R.ReactSpec props MapGL.Viewport R.ReactElement (console :: CONSOLE, dom :: DOM | eff)
+mapSpec ::  forall props eff . R.ReactSpec props MapGL.Viewport R.ReactElement (dom :: DOM | eff)
 mapSpec = R.spec' (const initialViewport) render
   where
     render this = do
-      let mapProps' = merge { onChangeViewport: mkEffFn1 $ \newVp -> do
-                                 log $ "Changed Viewport: " <> show newVp
-                                 void $ R.writeState this newVp
-                            , onClick: mkEffFn1 $ \info -> do
-                                 log $ "Clicked map: (" <> show (MapGL.lng info.lngLat) <> ", " <> show (MapGL.lat info.lngLat) <> ")"
+      let mapProps' = merge { onChangeViewport: mkEffFn1 (void <<< R.writeState this)
+                            , onClick: mkEffFn1 (const $ pure unit)
                             , mapStyle: mapStyle
                             , mapboxApiAccessToken: mapboxApiAccessToken
                             }
@@ -56,7 +52,7 @@ mapSpec = R.spec' (const initialViewport) render
       let mapProps = build mapProps' vp
       pure $ R.createFactory MapGL.mapGL mapProps
 
-initialViewport :: forall eff . Eff (dom :: DOM | eff) MapGL.Viewport
+initialViewport :: forall eff. Eff (dom :: DOM | eff) MapGL.Viewport
 initialViewport = do
   win <- window
   w <- Window.innerWidth win
@@ -70,6 +66,20 @@ initialViewport = do
                    , pitch: 0.0
                    , bearing: 0.0
                    }
+
+-- | Icon Layer Component
+type MeteoriteProps =
+  { width :: Int
+  , height :: Int
+  , latitude :: Number
+  , longitude :: Number
+  , zoom :: Number
+  , bearing :: Number
+  , pitch :: Number
+  , data :: Array Meteorite
+  }
+
+
 
 newtype Meteorite =
   Mereorite { class :: String
