@@ -14,13 +14,15 @@ import Data.Array ((!!), (..), length, filter)
 import Data.Either (either)
 import Data.Int (toNumber)
 import Data.Generic (class Generic)
-import Data.Maybe (fromJust)
+import Data.Maybe (fromJust, fromMaybe)
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.Set as S
 import Data.Map as Map
 import Data.Record.Builder (merge, build)
 import Data.Traversable (for_)
 import Data.Tuple (Tuple(..))
+import DeckGL as DeckGL
+import DeckGL.Layer.Icon as Icon
 import DeckGL.Projection (makeMercatorProjector, project)
 import DOM (DOM)
 import DOM.HTML (window)
@@ -29,7 +31,7 @@ import DOM.HTML.Window as Window
 import DOM.Node.NonElementParentNode (getElementById)
 import DOM.Node.Types (Element, ElementId(..), documentToNonElementParentNode)
 import MapGL as MapGL
-import Math (pow)
+import Math (floor, pow)
 import Network.HTTP.Affjax (AJAX)
 import Network.HTTP.Affjax (get) as AffJax
 import Partial.Unsafe (unsafePartial)
@@ -48,7 +50,10 @@ main = void  $ elm' >>= render (R.createFactory mapClass unit)
       elm <- getElementById (ElementId "app") (documentToNonElementParentNode (htmlDocumentToDocument doc))
       pure $ unsafePartial (fromJust elm)
 
+--------------------------------------------------------------------------------
 -- | Map Component
+--------------------------------------------------------------------------------
+
 mapClass :: forall props . R.ReactClass props
 mapClass = R.createClass mapSpec
 
@@ -80,6 +85,10 @@ initialViewport = do
                    , bearing: 0.0
                    }
 
+--------------------------------------------------------------------------------
+-- | DeckGL Component
+--------------------------------------------------------------------------------
+
 -- | Icon Layer Component
 type MeteoriteProps =
   { width :: Int
@@ -90,36 +99,61 @@ type MeteoriteProps =
   , bearing :: Number
   , pitch :: Number
   , data :: Array Meteorite
+  , zoomLevels :: ZoomLevels
+  , iconAtlas :: String
   }
 
-type MeteoriteState =
-  { meteorites :: Array Meteorite
-  , viewport :: MapGL.Viewport
-  }
-
-updateCluster :: forall props eff.
-                 R.ReactThis props MeteoriteState
-              -> Eff (state :: R.ReactState R.ReadWrite | eff) Unit
-updateCluster this = do
-    st <- R.readState this
-    let vpZoomedOut = wrap $ (unwrap st.viewport) {zoom = 0.0}
-        mp = makeMercatorProjector vpZoomedOut
-        bush = RBush.empty 5
-        screenData = flip map st.meteorites $ \m ->
-          let lngLat = getLngLat m
-              sCoords = project mp lngLat
-          in { entry: m
-             , x: toNumber sCoords.x
-             , y: toNumber sCoords.y
-             }
-        fullBush = RBush.insertMany screenData bush
-    pure unit
+iconLayerSpec :: forall eff . R.ReactSpec MeteoriteProps Unit R.ReactElement eff
+iconLayerSpec = R.spec unit render
   where
-    getLngLat :: Meteorite -> MapGL.LngLat
-    getLngLat (Meteorite m) = unsafePartial fromJust $ do
-      lng <- m.coordinates !! 0
-      lat <- m.coordinates !! 1
-      pure $ MapGL.makeLngLat lng lat
+    render this = do
+      props <- R.getProps this
+      let vp = unwrap props.viewport
+          currentZoom = floor vp.zoom
+          iconLayer = Icon.makeIconLayer $
+                        ( Icon.defaultIconProps { id = "icon"
+                                                , data = props.data
+                                                , pickable = false
+                                                , visible = true
+                                                , iconAtlas = props.iconAtlas
+                                                , sizeScale = 2 * iconSize
+                                                , getPosition = \(Meteorite m) -> m.coordinates
+                                                , getIcon = \m ->
+                                                    let mId = meteoriteId m
+                                                    in fromMaybe "marker" (_.icon <$> Map.lookup (Tuple mId currentZoom) props.zoomLevels)
+                                                , getsize = \m ->
+                                                    let mId = meteoriteId m
+                                                    in fromMaybe "marker" (_.size <$> Map.lookup (Tuple mId currentZoom) props.zoomLevels)
+
+                                                , autoHighlight = true
+                                                , highlightedObjectIndex = 0
+                                                })
+          overlayProps = build (merge {layers: [iconLayer], initializer: DeckGL.initalizeGL} vp) :: DeckGL.DeckGLProps
+      pure $ R.createFactory DeckGL.deckGL overlayProps
+
+--updateCluster :: forall props eff.
+--                 R.ReactThis props MeteoriteState
+--              -> Eff (state :: R.ReactState R.ReadWrite | eff) Unit
+--updateCluster this = do
+--    st <- R.readState this
+--    let vpZoomedOut = wrap $ (unwrap st.viewport) {zoom = 0.0}
+--        mp = makeMercatorProjector vpZoomedOut
+--        bush = RBush.empty 5
+--        screenData = flip map st.meteorites $ \m ->
+--          let lngLat = getLngLat m
+--              sCoords = project mp lngLat
+--          in { entry: m
+--             , x: toNumber sCoords.x
+--             , y: toNumber sCoords.y
+--             }
+--        fullBush = RBush.insertMany screenData bush
+--    pure unit
+--  where
+--    getLngLat :: Meteorite -> MapGL.LngLat
+--    getLngLat (Meteorite m) = unsafePartial fromJust $ do
+--      lng <- m.coordinates !! 0
+--      lat <- m.coordinates !! 1
+--      pure $ MapGL.makeLngLat lng lat
 
 
 --------------------------------------------------------------------------------
@@ -182,7 +216,7 @@ fillOutZoomLevels nodes bush =
 
 newtype Meteorite =
   Meteorite { class :: String
-            , coordinates :: Array Number
+            , coordinates :: MapGL.LngLat
             , mass :: String
             , name :: String
             , year :: Int
