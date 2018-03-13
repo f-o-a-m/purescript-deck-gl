@@ -10,11 +10,13 @@ import Control.Monad.Error.Class (throwError)
 import Control.Monad.Reader (ReaderT, runReaderT, ask)
 import Control.Monad.State (execState, State, modify, get)
 import Data.Argonaut (class DecodeJson, Json, decodeJson)
-import Data.Argonaut.Decode.Generic (gDecodeJson)
+import Data.Argonaut.Aeson.Decode.Generic (genericDecodeAeson)
+import Data.Argonaut.Aeson.Options (defaultOptions)
 import Data.Array ((!!), (..), length, filter, foldl)
 import Data.Either (either)
 import Data.Int (floor, toNumber)
-import Data.Generic (class Generic)
+import Data.Generic as Generic
+import Data.Generic.Rep as Rep
 import Data.Maybe (fromJust, fromMaybe)
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.Set as S
@@ -126,13 +128,14 @@ newtype IconEntry =
             , anchorY :: Int
             }
 
-derive instance genericIconEntry :: Generic IconEntry
+derive instance genericIconEntry :: Generic.Generic IconEntry
+derive instance genericRepIconEntry :: Rep.Generic IconEntry _
 
 instance decodeJsonIconEntry :: DecodeJson IconEntry where
-  decodeJson = gDecodeJson
+  decodeJson = genericDecodeAeson defaultOptions  {unwrapSingleConstructors = true}
 
 iconUrl :: String
-iconUrl = "./data/location-icon-mapping.json"
+iconUrl = "https://raw.githubusercontent.com/f-o-a-m/purescript-deck-gl/initial-branch/examples/icon/data/location-icon-mapping.json?token=Ad1MEYdtf15iMfryz_YvopHdP2Y2kC42ks5asZKjwA%3D%3D"
 
 buildIconMapping :: forall eff. Aff (ajax :: AJAX | eff) Icon.IconMapping
 buildIconMapping = do
@@ -325,10 +328,11 @@ meteoriteLngLat (Meteorite m)= unsafePartial fromJust $ do
 
 derive instance newtypeMeteorite :: Newtype Meteorite _
 
-derive instance genericMeteorite :: Generic Meteorite
+derive instance genericMeteorite :: Generic.Generic Meteorite
+derive instance genericRepMeteorite :: Rep.Generic Meteorite _
 
 instance decodeJsonMeteorite :: DecodeJson Meteorite where
-  decodeJson = gDecodeJson
+  decodeJson = genericDecodeAeson defaultOptions  {unwrapSingleConstructors = true}
 
 getMeteoriteData :: forall e . Aff (ajax :: AJAX | e) (Array Meteorite)
 getMeteoriteData = do
