@@ -1,6 +1,7 @@
 module DeckGL.Layer.Polygon where
 
-import DeckGL.BaseProps (Layer, BaseProps, LngLat)
+import DeckGL.BaseProps (Layer, BaseProps)
+import MapGL (LngLat)
 
 foreign import defaultPolygonProps :: forall eff. PolygonLayerProps eff
 

@@ -1,6 +1,7 @@
 module DeckGL.Layer.Icon where
 
-import DeckGL.BaseProps (Layer, BaseProps, LngLat)
+import DeckGL.BaseProps (Layer, BaseProps)
+import MapGL (LngLat)
 import Data.StrMap
 
 foreign import defaultIconProps :: forall d eff . IconLayerProps d eff

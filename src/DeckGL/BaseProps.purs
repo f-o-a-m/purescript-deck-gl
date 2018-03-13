@@ -1,18 +1,10 @@
 module DeckGL.BaseProps where
 
+import MapGL (LngLat)
 import Control.Monad.Eff.Uncurried (EffFn1)
 
 foreign import data Layer :: Type
 foreign import data LayerClass :: Type
-
--- | The deck.gl representation of a longitude latitude pair is
--- | an array of three numbers, the longitude latitude and altitude.
-foreign import data LngLat :: Type
-
-foreign import getLat :: LngLat -> Number
-foreign import getLng :: LngLat -> Number
-foreign import getElev :: LngLat -> Number
-foreign import makeLngLat :: Number -> Number -> LngLat
 
 -- | The picking engine returns objects of type `PickingInfo a` describing what
 -- | layer and object were picked.
@@ -69,4 +61,3 @@ type BaseProps eff rest a =
   , highlightColor :: Array Int
   | rest
   }
-

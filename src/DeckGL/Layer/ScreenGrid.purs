@@ -1,6 +1,7 @@
 module DeckGL.Layer.ScreenGrid where
 
-import DeckGL.BaseProps (Layer, BaseProps, LngLat)
+import DeckGL.BaseProps (Layer, BaseProps)
+import MapGL (LngLat)
 
 foreign import defaultScreenGridProps :: forall eff . ScreenGridLayerProps eff
 foreign import makeScreenGridLayer :: forall eff . ScreenGridLayerProps eff -> Layer

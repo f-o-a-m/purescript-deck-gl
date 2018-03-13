@@ -9,6 +9,7 @@ import Control.Monad.Error.Class (throwError)
 import Data.Argonaut (class DecodeJson, Json, decodeJson)
 import Data.Argonaut.Decode.Generic (gDecodeJson)
 import Data.Either (either)
+import Data.Int (toNumber)
 import Data.Generic (class Generic)
 import Data.Maybe (fromJust)
 import Data.Newtype (class Newtype, unwrap)
@@ -79,8 +80,6 @@ type MeteoriteProps =
   , data :: Array Meteorite
   }
 
-
-
 newtype Meteorite =
   Mereorite { class :: String
             , coordinates :: Array Number
@@ -100,6 +99,20 @@ getMeteoriteData :: forall e . Aff (ajax :: AJAX | e) (Array Meteorite)
 getMeteoriteData = do
   (meteorResp :: Json) <-  _.response <$> get meteoritesUrl
   either (throwError <<< error) pure $ decodeJson meteorResp
+
+-- | Utils
+
+getIconName :: Int -> String
+getIconName size
+  | size == 0 = ""
+  | size < 10 = "marker-" <> show size
+  | size < 100 = "marker-" <> show (size / 10) <> "0"
+  | otherwise = "marker-100"
+
+getIconSize :: Int -> Number
+getIconSize size = (min 100.0 (toNumber size) / 50.0) + 0.5
+
+-- | Config
 
 meteoritesUrl :: String
 meteoritesUrl = "https://github.com/uber-common/deck.gl-data/blob/master/examples/icon/meteorites.json"
