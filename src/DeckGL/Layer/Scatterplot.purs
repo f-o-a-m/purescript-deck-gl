@@ -1,6 +1,7 @@
 module DeckGL.Layer.Scatterplot where
 
-import DeckGL.BaseProps (Layer, BaseProps)
+import DeckGL (Layer)
+import DeckGL.BaseProps (BaseProps)
 import MapGL (LngLat)
 
 foreign import defaultScatterplotProps :: forall eff . ScatterplotLayerProps eff

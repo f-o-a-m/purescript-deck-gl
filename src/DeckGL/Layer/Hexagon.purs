@@ -1,6 +1,7 @@
 module DeckGL.Layer.Hexagon where
 
-import DeckGL.BaseProps (Layer, BaseProps, LightSettings)
+import DeckGL (Layer)
+import DeckGL.BaseProps (BaseProps, LightSettings)
 import MapGL (LngLat)
 
 foreign import defaultHexagonProps :: forall eff . HexagonLayerProps eff

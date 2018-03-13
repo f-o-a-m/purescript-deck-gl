@@ -2,6 +2,7 @@ module DeckGL where
 
 import React (ReactClass)
 
+foreign import data Layer :: Type
 foreign import data GLInitializer :: Type
 
 foreign import initializeGL :: GLInitializer
@@ -14,6 +15,7 @@ type DeckGLProps =
   , zoom :: Number
   , bearing :: Number
   , pitch :: Number
+  , layers :: Array Layer
   , initializer :: GLInitializer
   }
 

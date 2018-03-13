@@ -12,7 +12,7 @@ import Data.Argonaut (class DecodeJson, Json, decodeJson)
 import Data.Argonaut.Decode.Generic (gDecodeJson)
 import Data.Array ((!!), (..), length, filter)
 import Data.Either (either)
-import Data.Int (toNumber)
+import Data.Int (floor, toNumber)
 import Data.Generic (class Generic)
 import Data.Maybe (fromJust, fromMaybe)
 import Data.Newtype (class Newtype, unwrap, wrap)
@@ -31,7 +31,7 @@ import DOM.HTML.Window as Window
 import DOM.Node.NonElementParentNode (getElementById)
 import DOM.Node.Types (Element, ElementId(..), documentToNonElementParentNode)
 import MapGL as MapGL
-import Math (floor, pow)
+import Math (pow)
 import Network.HTTP.Affjax (AJAX)
 import Network.HTTP.Affjax (get) as AffJax
 import Partial.Unsafe (unsafePartial)
@@ -130,8 +130,16 @@ iconLayerSpec = R.spec unit render
                                                 , autoHighlight = true
                                                 , highlightedObjectIndex = 0
                                                 })
-          overlayProps = build (merge {layers: [iconLayer], initializer: DeckGL.initializeGL} vp) :: DeckGL.DeckGLProps
-      pure $ R.createFactory DeckGL.deckGL overlayProps
+      pure $ R.createFactory DeckGL.deckGL { layers: [iconLayer]
+                                           , initializer: DeckGL.initializeGL
+                                           , zoom: vp.zoom
+                                           , width: vp.width
+                                           , height: vp.height
+                                           , latitude: vp.latitude
+                                           , longitude: vp.longitude
+                                           , pitch: vp.pitch
+                                           , bearing: vp.bearing
+                                           }
 
 --updateCluster :: forall props eff.
 --                 R.ReactThis props MeteoriteState

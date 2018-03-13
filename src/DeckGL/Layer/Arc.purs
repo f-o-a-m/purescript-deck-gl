@@ -1,6 +1,7 @@
 module DeckGL.Layer.Arc where
 
-import DeckGL.BaseProps (BaseProps, Layer)
+import DeckGL (Layer)
+import DeckGL.BaseProps (BaseProps)
 import MapGL (LngLat)
 
 foreign import defaultArcProps :: forall eff . ArcLayerProps eff

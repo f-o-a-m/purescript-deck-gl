@@ -1,10 +1,9 @@
 module DeckGL.BaseProps where
 
+import DeckGL (Layer)
 import MapGL (LngLat)
 import Control.Monad.Eff.Uncurried (EffFn1)
 
-foreign import data Layer :: Type
-foreign import data LayerClass :: Type
 
 -- | The picking engine returns objects of type `PickingInfo a` describing what
 -- | layer and object were picked.

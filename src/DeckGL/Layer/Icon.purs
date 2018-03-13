@@ -1,6 +1,7 @@
 module DeckGL.Layer.Icon where
 
-import DeckGL.BaseProps (Layer, BaseProps)
+import DeckGL (Layer)
+import DeckGL.BaseProps (BaseProps)
 import MapGL (LngLat)
 import Data.StrMap
 
