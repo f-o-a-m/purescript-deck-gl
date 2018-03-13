@@ -10,13 +10,14 @@ import Control.Monad.Reader (ReaderT, runReaderT, ask)
 import Control.Monad.State (execState, State, modify, get)
 import Data.Argonaut (class DecodeJson, Json, decodeJson)
 import Data.Argonaut.Decode.Generic (gDecodeJson)
-import Data.Array ((!!), (..), length, filter)
+import Data.Array ((!!), (..), length, filter, foldl)
 import Data.Either (either)
 import Data.Int (floor, toNumber)
 import Data.Generic (class Generic)
 import Data.Maybe (fromJust, fromMaybe)
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.Set as S
+import Data.StrMap as StrMap
 import Data.Map as Map
 import Data.Record.Builder (merge, build)
 import Data.Traversable (for_)
@@ -84,6 +85,39 @@ initialViewport = do
                    , pitch: 0.0
                    , bearing: 0.0
                    }
+
+-- | IconMapping
+newtype IconEntry =
+  IconEntry { label :: String
+            , x :: Int
+            , y :: Int
+            , width :: Int
+            , height :: Int
+            , anchorY :: Int
+            }
+
+derive instance genericIconEntry :: Generic IconEntry
+
+instance decodeJsonIconEntry :: DecodeJson IconEntry where
+  decodeJson = gDecodeJson
+
+iconUrl :: String
+iconUrl = "./data/location-icon-mapping.json"
+
+buildIconMapping :: forall eff. Aff (ajax :: AJAX | eff) Icon.IconMapping
+buildIconMapping = do
+    (mappingResp :: Json) <-  _.response <$> AffJax.get iconUrl
+    (icons :: Array IconEntry) <- either (throwError <<< error) pure $ decodeJson mappingResp
+    pure $ foldl (\mapping icon -> StrMap.insert (makeLabel icon) (makeEntry icon) mapping) StrMap.empty icons
+  where
+    makeLabel (IconEntry icon) = icon.label
+    makeEntry (IconEntry icon) =
+      { x: icon.x
+      , y: icon.y
+      , width: icon.width
+      , height: icon.height
+      , mask: true
+      }
 
 --------------------------------------------------------------------------------
 -- | DeckGL Component
@@ -263,9 +297,6 @@ meteoriteLngLat (Meteorite m)= unsafePartial fromJust $ do
 derive instance newtypeMeteorite :: Newtype Meteorite _
 
 derive instance genericMeteorite :: Generic Meteorite
-
-instance eqMeteorite :: Eq Meteorite where
-  eq a b = meteoriteId a == meteoriteId b
 
 instance decodeJsonMeteorite :: DecodeJson Meteorite where
   decodeJson = gDecodeJson
