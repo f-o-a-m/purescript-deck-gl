@@ -81,7 +81,7 @@ mapSpec = (R.spec' getInitialState render) {componentWillMount = onComponentWill
     getInitialState this = do
       vp <- initialViewport
       pure $ { viewport: vp
-             , iconAtlas: "./data/location-icon-atlas.png"
+             , iconAtlas: "./../data/location-icon-mapping.png"
              , iconMapping: StrMap.empty
              , data: []
              }
