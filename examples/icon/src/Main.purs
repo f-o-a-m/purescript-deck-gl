@@ -93,16 +93,23 @@ initialViewport = do
 type MeteoriteProps =
   { viewport :: MapGL.Viewport
   , data :: Array (Icon.IconData (meteorite :: Meteorite))
-  , zoomLevels :: ZoomLevels
   , iconMapping :: Icon.IconMapping
   , iconAtlas :: String
   }
 
-iconLayerSpec :: forall eff . R.ReactSpec MeteoriteProps Unit R.ReactElement eff
-iconLayerSpec = R.spec unit render
+type MeteoriteState =
+  { zoomLevels :: ZoomLevels
+  }
+
+iconLayerClass :: R.ReactClass MeteoriteProps
+iconLayerClass = R.createClass iconLayerSpec
+
+iconLayerSpec :: forall eff . R.ReactSpec MeteoriteProps MeteoriteState R.ReactElement eff
+iconLayerSpec = (R.spec' getInitialState render) {componentWillReceiveProps = receiveProps}
   where
     render this = do
       props <- R.getProps this
+      state <- R.readState this
       let vp = unwrap props.viewport
           currentZoom = floor vp.zoom
           iconLayer = Icon.makeIconLayer $
@@ -116,10 +123,10 @@ iconLayerSpec = R.spec unit render
                                                 , getPosition = \{meteorite} -> meteoriteLngLat meteorite
                                                 , getIcon = \{meteorite} ->
                                                     let mId = meteoriteId meteorite
-                                                    in fromMaybe "marker" (_.icon <$> Map.lookup (Tuple mId currentZoom) props.zoomLevels)
+                                                    in fromMaybe "marker" (_.icon <$> Map.lookup (Tuple mId currentZoom) state.zoomLevels)
                                                 , getSize = \{meteorite} ->
                                                     let mId = meteoriteId meteorite
-                                                    in fromMaybe 1.0 (_.size <$> Map.lookup (Tuple mId currentZoom) props.zoomLevels)
+                                                    in fromMaybe 1.0 (_.size <$> Map.lookup (Tuple mId currentZoom) state.zoomLevels)
 
                                                 , autoHighlight = true
                                                 , highlightedObjectIndex = 0
@@ -135,29 +142,46 @@ iconLayerSpec = R.spec unit render
                                            , bearing: vp.bearing
                                            }
 
---updateCluster :: forall props eff.
---                 R.ReactThis props MeteoriteState
---              -> Eff (state :: R.ReactState R.ReadWrite | eff) Unit
---updateCluster this = do
---    st <- R.readState this
---    let vpZoomedOut = wrap $ (unwrap st.viewport) {zoom = 0.0}
---        mp = makeMercatorProjector vpZoomedOut
---        bush = RBush.empty 5
---        screenData = flip map st.meteorites $ \m ->
---          let lngLat = getLngLat m
---              sCoords = project mp lngLat
---          in { entry: m
---             , x: toNumber sCoords.x
---             , y: toNumber sCoords.y
---             }
---        fullBush = RBush.insertMany screenData bush
---    pure unit
---  where
---    getLngLat :: Meteorite -> MapGL.LngLat
---    getLngLat (Meteorite m) = unsafePartial fromJust $ do
---      lng <- m.coordinates !! 0
---      lat <- m.coordinates !! 1
---      pure $ MapGL.makeLngLat lng lat
+    getInitialState ::  R.GetInitialState MeteoriteProps MeteoriteState eff
+    getInitialState this = do
+      props <- R.getProps this
+      pure $ updateCluster props
+
+    receiveProps :: R.ComponentWillReceiveProps MeteoriteProps MeteoriteState eff
+    receiveProps this newProps = do
+      currentProps <- R.getProps this
+      let oldViewport = unwrap currentProps.viewport
+          newViewport = unwrap newProps.viewport
+          getMeteoriteIds = map $ \d -> meteoriteId d.meteorite
+      if   getMeteoriteIds newProps.data /= getMeteoriteIds currentProps.data
+        || oldViewport.width /= newViewport.width
+        ||  newViewport.height /= oldViewport.height
+        then let newZL = updateCluster newProps
+             in void $ R.writeState this newZL
+        else pure unit
+
+
+
+updateCluster :: MeteoriteProps -> {zoomLevels :: ZoomLevels}
+updateCluster props =
+    let vpZoomedOut = wrap $ (unwrap props.viewport) {zoom = 0.0}
+        mp = makeMercatorProjector vpZoomedOut
+        bush = RBush.empty 5
+        screenData = flip map props.data $ \d ->
+          let lngLat = getLngLat d.meteorite
+              sCoords = project mp lngLat
+          in { entry: d.meteorite
+             , x: toNumber sCoords.x
+             , y: toNumber sCoords.y
+             }
+        fullBush = RBush.insertMany screenData bush
+    in {zoomLevels: fillOutZoomLevels screenData fullBush}
+  where
+    getLngLat :: Meteorite -> MapGL.LngLat
+    getLngLat (Meteorite m) = unsafePartial fromJust $ do
+      lng <- m.coordinates !! 0
+      lat <- m.coordinates !! 1
+      pure $ MapGL.makeLngLat lng lat
 
 
 --------------------------------------------------------------------------------
@@ -239,6 +263,9 @@ meteoriteLngLat (Meteorite m)= unsafePartial fromJust $ do
 derive instance newtypeMeteorite :: Newtype Meteorite _
 
 derive instance genericMeteorite :: Generic Meteorite
+
+instance eqMeteorite :: Eq Meteorite where
+  eq a b = meteoriteId a == meteoriteId b
 
 instance decodeJsonMeteorite :: DecodeJson Meteorite where
   decodeJson = gDecodeJson

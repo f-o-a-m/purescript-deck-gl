@@ -1,7 +1,7 @@
 const rbush = require("rbush");
 
 exports.empty = function (maxInNode) {
-    return rbush(maxInNode);
+    return rbush(maxInNode, ['.x', '.y', '.x', '.y']);
 };
 
 exports.insert = function (a) {
