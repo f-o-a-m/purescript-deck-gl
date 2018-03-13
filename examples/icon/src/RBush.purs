@@ -13,7 +13,7 @@ foreign import data RBush' :: Type -> Type
 type Node a =
   { x :: Number
   , y :: Number
-  | a
+  , entry :: a
   }
 
 newtype RBush a = RBush (RBush' (Node a))

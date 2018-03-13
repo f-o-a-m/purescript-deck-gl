@@ -6,24 +6,31 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Exception (error)
 import Control.Monad.Eff.Uncurried (mkEffFn1)
 import Control.Monad.Error.Class (throwError)
+import Control.Monad.Reader (ReaderT, ask)
+import Control.Monad.State (runState, State, modify, get)
 import Data.Argonaut (class DecodeJson, Json, decodeJson)
 import Data.Argonaut.Decode.Generic (gDecodeJson)
-import Data.Array ((!!))
+import Data.Array ((!!), length, filter)
 import Data.Either (either)
 import Data.Int (toNumber)
 import Data.Generic (class Generic)
 import Data.Maybe (fromJust)
 import Data.Newtype (class Newtype, unwrap, wrap)
+import Data.Set as S
+import Data.Map as Map
 import Data.Record.Builder (merge, build)
-import DeckGL.Projection (makeMercatorProjector)
+import Data.Traversable (for_)
+import DeckGL.Projection (makeMercatorProjector, project)
 import DOM (DOM)
 import DOM.HTML (window)
 import DOM.HTML.Types (htmlDocumentToDocument)
 import DOM.HTML.Window as Window
 import DOM.Node.NonElementParentNode (getElementById)
 import DOM.Node.Types (Element, ElementId(..), documentToNonElementParentNode)
-import Network.HTTP.Affjax (get, AJAX)
 import MapGL as MapGL
+import Math (pow)
+import Network.HTTP.Affjax (AJAX)
+import Network.HTTP.Affjax (get) as AffJax
 import Partial.Unsafe (unsafePartial)
 import RBush as RBush
 import React as R
@@ -96,9 +103,15 @@ updateCluster this = do
     st <- R.readState this
     let vpZoomedOut = wrap $ (unwrap st.viewport) {zoom = 0.0}
         mp = makeMercatorProjector vpZoomedOut
-        bush = RBush.empty
-  --      screenData = flip map st.meteorites $ \m ->
-  --        let lngLat = unsafePartialMapGL.makeLngLat 
+        bush = RBush.empty 5
+        screenData = flip map st.meteorites $ \m ->
+          let lngLat = getLngLat m
+              sCoords = project mp lngLat
+          in { entry: m
+             , x: toNumber sCoords.x
+             , y: toNumber sCoords.y
+             }
+        fullBush = RBush.insertMany screenData bush
     pure unit
   where
     getLngLat :: Meteorite -> MapGL.LngLat
@@ -107,6 +120,50 @@ updateCluster this = do
       lat <- m.coordinates !! 1
       pure $ MapGL.makeLngLat lng lat
 
+
+--------------------------------------------------------------------------------
+-- | ZoomLevels
+--------------------------------------------------------------------------------
+
+type ZoomLevelData =
+  { icon :: String
+  , size :: Number
+  }
+
+type ZoomLevels = Map.Map Int ZoomLevelData
+
+type ZoomLevelState = {knownSet :: S.Set String, numNeighbors :: Int}
+
+fillOutZoomLevel
+  :: Array (RBush.Node Meteorite)
+  -> Int
+  -> ReaderT (RBush.RBush Meteorite) (State ZoomLevelState) Unit
+fillOutZoomLevel ms zoom = for_ ms $ \{x, y, entry} -> do
+    bush <- ask
+    known <- _.knownSet <$> get
+    if meteoriteId entry `S.member` known
+       then pure unit
+       else let box = { minX: x - radius
+                      , minY: y - radius
+                      , maxX: x + radius
+                      , maxY: y + radius
+                      }
+                allNeighbors = RBush.search box bush
+                newNeighbors = filter (\n -> not $ meteoriteId n.entry `S.member` known) allNeighbors
+            in for_ newNeighbors $ \node ->
+                 if meteoriteId node.entry == meteoriteId entry
+                   then modify \s -> s { numNeighbors = length newNeighbors
+                                       , knownSet = S.insert (meteoriteId node.entry) s.knownSet
+                                       }
+                   else modify \s -> s { knownSet = S.insert (meteoriteId node.entry) s.knownSet
+                                       }
+  where
+    radius = iconSize / (2.0 `pow` toNumber (zoom + 1))
+
+--------------------------------------------------------------------------------
+-- | Meteorite
+--------------------------------------------------------------------------------
+
 newtype Meteorite =
   Meteorite { class :: String
             , coordinates :: Array Number
@@ -114,6 +171,10 @@ newtype Meteorite =
             , name :: String
             , year :: Int
             }
+
+meteoriteId :: Meteorite -> String
+meteoriteId (Meteorite m) =
+  m.class <> show m.coordinates <> m.mass <> m.name <> show m.year
 
 derive instance newtypeMeteorite :: Newtype Meteorite _
 
@@ -124,10 +185,12 @@ instance decodeJsonMeteorite :: DecodeJson Meteorite where
 
 getMeteoriteData :: forall e . Aff (ajax :: AJAX | e) (Array Meteorite)
 getMeteoriteData = do
-  (meteorResp :: Json) <-  _.response <$> get meteoritesUrl
+  (meteorResp :: Json) <-  _.response <$> AffJax.get meteoritesUrl
   either (throwError <<< error) pure $ decodeJson meteorResp
 
--- | Utils
+--------------------------------------------------------------------------------
+-- | Utils and Config
+--------------------------------------------------------------------------------
 
 getIconName :: Int -> String
 getIconName size
@@ -139,8 +202,8 @@ getIconName size
 getIconSize :: Int -> Number
 getIconSize size = (min 100.0 (toNumber size) / 50.0) + 0.5
 
-
--- | Config
+iconSize :: Number
+iconSize = 60.0
 
 meteoritesUrl :: String
 meteoritesUrl = "https://github.com/uber-common/deck.gl-data/blob/master/examples/icon/meteorites.json"
