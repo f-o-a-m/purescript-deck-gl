@@ -20,6 +20,7 @@ import Data.Set as S
 import Data.Map as Map
 import Data.Record.Builder (merge, build)
 import Data.Traversable (for_)
+import Data.Tuple (Tuple(..))
 import DeckGL.Projection (makeMercatorProjector, project)
 import DOM (DOM)
 import DOM.HTML (window)
@@ -130,9 +131,11 @@ type ZoomLevelData =
   , size :: Number
   }
 
-type ZoomLevels = Map.Map Int ZoomLevelData
+-- | For a given Meteorite (with meteoriteId) and zoom level n
+-- | return the zoom level data, if there is any
+type ZoomLevels = Map.Map (Tuple String Int) ZoomLevelData
 
-type ZoomLevelState = {knownSet :: S.Set String, numNeighbors :: Int}
+type ZoomLevelState = {knownSet :: S.Set String, zoomLevels :: ZoomLevels}
 
 fillOutZoomLevel
   :: Array (RBush.Node Meteorite)
@@ -151,14 +154,25 @@ fillOutZoomLevel ms zoom = for_ ms $ \{x, y, entry} -> do
                 allNeighbors = RBush.search box bush
                 newNeighbors = filter (\n -> not $ meteoriteId n.entry `S.member` known) allNeighbors
             in for_ newNeighbors $ \node ->
-                 if meteoriteId node.entry == meteoriteId entry
-                   then modify \s -> s { numNeighbors = length newNeighbors
-                                       , knownSet = S.insert (meteoriteId node.entry) s.knownSet
-                                       }
-                   else modify \s -> s { knownSet = S.insert (meteoriteId node.entry) s.knownSet
-                                       }
+                 let nodeId = meteoriteId node.entry
+                 in if nodeId == meteoriteId entry
+                      then modify \s -> s { zoomLevels = Map.insert (Tuple nodeId zoom) { icon: getIconName $ length newNeighbors
+                                                                                        , size: getIconSize $ length newNeighbors
+                                                                                        } s.zoomLevels
+                                          , knownSet = S.insert nodeId s.knownSet
+                                          }
+                      else modify \s -> s { knownSet = S.insert nodeId s.knownSet
+                                          }
   where
     radius = iconSize / (2.0 `pow` toNumber (zoom + 1))
+
+--fillOutZoomLevels
+--  :: Array (RBush.Node Meteorite)
+--  -> RBush.Meteorite
+--  -> ZoomLevels
+--fillOutZoomLevels nodes bush =
+--  let initialState = {knownSet: S.empty, numNeighbors: }
+
 
 --------------------------------------------------------------------------------
 -- | Meteorite
