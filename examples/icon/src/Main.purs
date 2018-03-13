@@ -6,11 +6,11 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Exception (error)
 import Control.Monad.Eff.Uncurried (mkEffFn1)
 import Control.Monad.Error.Class (throwError)
-import Control.Monad.Reader (ReaderT, ask)
-import Control.Monad.State (runState, State, modify, get)
+import Control.Monad.Reader (ReaderT, runReaderT, ask)
+import Control.Monad.State (execState, State, modify, get)
 import Data.Argonaut (class DecodeJson, Json, decodeJson)
 import Data.Argonaut.Decode.Generic (gDecodeJson)
-import Data.Array ((!!), length, filter)
+import Data.Array ((!!), (..), length, filter)
 import Data.Either (either)
 import Data.Int (toNumber)
 import Data.Generic (class Generic)
@@ -166,12 +166,14 @@ fillOutZoomLevel ms zoom = for_ ms $ \{x, y, entry} -> do
   where
     radius = iconSize / (2.0 `pow` toNumber (zoom + 1))
 
---fillOutZoomLevels
---  :: Array (RBush.Node Meteorite)
---  -> RBush.Meteorite
---  -> ZoomLevels
---fillOutZoomLevels nodes bush =
---  let initialState = {knownSet: S.empty, numNeighbors: }
+fillOutZoomLevels
+  :: Array (RBush.Node Meteorite)
+  -> RBush.RBush Meteorite
+  -> ZoomLevels
+fillOutZoomLevels nodes bush =
+  let initialState = {knownSet: S.empty, zoomLevels: Map.empty}
+      buildZoomLevelsMap = for_ (0 .. 20) (fillOutZoomLevel nodes)
+  in _.zoomLevels $ execState (runReaderT buildZoomLevelsMap bush) initialState
 
 
 --------------------------------------------------------------------------------
