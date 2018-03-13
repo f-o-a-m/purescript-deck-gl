@@ -91,13 +91,7 @@ initialViewport = do
 
 -- | Icon Layer Component
 type MeteoriteProps =
-  { width :: Int
-  , height :: Int
-  , latitude :: Number
-  , longitude :: Number
-  , zoom :: Number
-  , bearing :: Number
-  , pitch :: Number
+  { viewport :: MapGL.Viewport
   , data :: Array (Icon.IconData (meteorite :: Meteorite))
   , zoomLevels :: ZoomLevels
   , iconMapping :: Icon.IconMapping
