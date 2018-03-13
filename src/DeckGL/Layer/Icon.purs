@@ -40,5 +40,8 @@ type IconLayerProps d eff = BaseProps
   ( iconAtlas :: String
   , iconMapping :: IconMapping
   , sizeScale :: Number
+  , getPosition :: IconData d -> LngLat
+  , getSize :: IconData d -> Int
+  , getIcon :: IconData d -> String
   )
   (IconData d)
