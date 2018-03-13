@@ -1,8 +1,9 @@
 module Main where
 
 import Prelude
-import Control.Monad.Aff (Aff)
+import Control.Monad.Aff (Aff, launchAff)
 import Control.Monad.Eff (Eff)
+import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Exception (error)
 import Control.Monad.Eff.Uncurried (mkEffFn1)
 import Control.Monad.Error.Class (throwError)
@@ -19,7 +20,6 @@ import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.Set as S
 import Data.StrMap as StrMap
 import Data.Map as Map
-import Data.Record.Builder (merge, build)
 import Data.Traversable (for_)
 import Data.Tuple (Tuple(..))
 import DeckGL as DeckGL
@@ -58,39 +58,47 @@ main = void  $ elm' >>= render (R.createFactory mapClass unit)
 mapClass :: forall props . R.ReactClass props
 mapClass = R.createClass mapSpec
 
-mapSpec ::  forall props eff . R.ReactSpec props MapGL.Viewport R.ReactElement (dom :: DOM | eff)
-mapSpec = R.spec' (const initialViewport) render
+mapSpec ::  forall props eff . R.ReactSpec props MapState R.ReactElement (dom :: DOM, ajax :: AJAX | eff)
+mapSpec = (R.spec' getInitialState render) {componentWillMount = onComponentWillMount}
   where
     render this = do
-      let mapProps' = merge { onChangeViewport: mkEffFn1 (void <<< R.writeState this)
-                            , onClick: mkEffFn1 (const $ pure unit)
-                            , mapStyle: mapStyle
-                            , mapboxApiAccessToken: mapboxApiAccessToken
-                            }
-      vp <- unwrap <$> R.readState this
-      let mapProps = build mapProps' vp
+      (MapGL.Viewport vp) <- _.viewport <$> R.readState this
+      let mapProps = { onChangeViewport: mkEffFn1 \newVp -> void $ R.transformState this _{viewport = newVp}
+                     , onClick: mkEffFn1 (const $ pure unit)
+                     , mapStyle: mapStyle
+                     , mapboxApiAccessToken: mapboxApiAccessToken
+                     , width: vp.width
+                     , height: vp.height
+                     , latitude: vp.latitude
+                     , longitude: vp.longitude
+                     , zoom: vp.zoom
+                     , bearing: vp.bearing
+                     , pitch: vp.pitch
+                     }
       pure $ R.createFactory MapGL.mapGL mapProps
 
-    getInitialState :: R.GetInitialState props MapState (dom :: DOM | eff)
+    getInitialState :: forall eff'. R.GetInitialState props MapState (dom :: DOM | eff')
     getInitialState this = do
-      vp <- intialViewport
+      vp <- initialViewport
       pure $ { viewport: vp
              , iconAtlas: "./data/location-icon-atlas.png"
              , iconMapping: StrMap.empty
              , data: []
              }
 
-    onComponentWillMount :: R.ComponentWillMount props MapState (ajax :: AJAX)
-    onComponentWillMound this = void <<< launchAff $ do
+    onComponentWillMount :: forall eff'. R.ComponentWillMount props MapState (ajax :: AJAX | eff')
+    onComponentWillMount this = void <<< launchAff $ do
       iconMapping <- buildIconMapping
       meteorites <- getMeteoriteData
-      let meteorites' = map 
+      void $ liftEff $ R.transformState this _{ iconMapping = iconMapping
+                                              , data = meteorites
+                                              }
 
 type MapState =
-  { viewport :: Viewport
+  { viewport :: MapGL.Viewport
   , iconAtlas :: String
   , iconMapping :: Icon.IconMapping
-  , data :: Array (IconData (meteorite :: Meteorite))
+  , data :: Array Meteorite
   }
 
 initialViewport :: forall eff. Eff (dom :: DOM | eff) MapGL.Viewport
@@ -101,9 +109,9 @@ initialViewport = do
   pure $
     MapGL.Viewport { width: w
                    , height: h
-                   , longitude: -74.00539284665783
-                   , latitude: 40.70544878575082
-                   , zoom: 10.822714855509464
+                   , longitude: -35.0
+                   , latitude: 36.7
+                   , zoom: 1.8
                    , pitch: 0.0
                    , bearing: 0.0
                    }
@@ -171,7 +179,7 @@ iconLayerSpec = (R.spec' getInitialState render) {componentWillReceiveProps = re
           meteoriteDate = flip map $ \m -> {meteorite: m}
           iconLayer = Icon.makeIconLayer $
                         ( Icon.defaultIconProps { id = "icon"
-                                                , data = props.data
+                                                , data = map (\m -> {meteorite : m}) props.data
                                                 , pickable = false
                                                 , visible = true
                                                 , iconAtlas = props.iconAtlas
@@ -209,7 +217,7 @@ iconLayerSpec = (R.spec' getInitialState render) {componentWillReceiveProps = re
       currentProps <- R.getProps this
       let oldViewport = unwrap currentProps.viewport
           newViewport = unwrap newProps.viewport
-          getMeteoriteIds = map $ \d -> meteoriteId d.meteorite
+          getMeteoriteIds = map meteoriteId
       if   getMeteoriteIds newProps.data /= getMeteoriteIds currentProps.data
         || oldViewport.width /= newViewport.width
         ||  newViewport.height /= oldViewport.height
@@ -217,17 +225,15 @@ iconLayerSpec = (R.spec' getInitialState render) {componentWillReceiveProps = re
              in void $ R.writeState this newZL
         else pure unit
 
-
-
 updateCluster :: MeteoriteProps -> {zoomLevels :: ZoomLevels}
 updateCluster props =
     let vpZoomedOut = wrap $ (unwrap props.viewport) {zoom = 0.0}
         mp = makeMercatorProjector vpZoomedOut
         bush = RBush.empty 5
         screenData = flip map props.data $ \d ->
-          let lngLat = getLngLat d.meteorite
+          let lngLat = getLngLat d
               sCoords = project mp lngLat
-          in { entry: d.meteorite
+          in { entry: d
              , x: toNumber sCoords.x
              , y: toNumber sCoords.y
              }
