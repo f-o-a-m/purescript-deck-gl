@@ -11,6 +11,7 @@
   "dependencies": {
     "create-react-class": "^15.6.3",
     "deck.gl": "^5.1.1",
+    "rbush": "^2.0.1",
     "react": "^16.0.0",
     "react-dom": "^16.0.0",
     "react-map-gl": "^3.2.1"

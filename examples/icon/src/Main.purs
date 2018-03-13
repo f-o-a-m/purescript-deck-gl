@@ -8,12 +8,14 @@ import Control.Monad.Eff.Uncurried (mkEffFn1)
 import Control.Monad.Error.Class (throwError)
 import Data.Argonaut (class DecodeJson, Json, decodeJson)
 import Data.Argonaut.Decode.Generic (gDecodeJson)
+import Data.Array ((!!))
 import Data.Either (either)
 import Data.Int (toNumber)
 import Data.Generic (class Generic)
 import Data.Maybe (fromJust)
-import Data.Newtype (class Newtype, unwrap)
+import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.Record.Builder (merge, build)
+import DeckGL.Projection (makeMercatorProjector)
 import DOM (DOM)
 import DOM.HTML (window)
 import DOM.HTML.Types (htmlDocumentToDocument)
@@ -23,8 +25,10 @@ import DOM.Node.Types (Element, ElementId(..), documentToNonElementParentNode)
 import Network.HTTP.Affjax (get, AJAX)
 import MapGL as MapGL
 import Partial.Unsafe (unsafePartial)
+import RBush as RBush
 import React as R
 import ReactDOM (render)
+
 
 main :: forall eff. Eff (dom :: DOM | eff) Unit
 main = void  $ elm' >>= render (R.createFactory mapClass unit)
@@ -80,6 +84,29 @@ type MeteoriteProps =
   , data :: Array Meteorite
   }
 
+type MeteoriteState =
+  { meteorites :: Array Meteorite
+  , viewport :: MapGL.Viewport
+  }
+
+updateCluster :: forall props.
+                 R.ReactThis props MeteoriteState
+              -> Eff (state :: R.ReactState R.ReadWrite | eff) Unit
+updateCluster this = do
+    st <- R.readState this
+    let vpZoomedOut = wrap $ (unwrap st.viewport) {zoom = 0.0}
+        mp = makeMercatorProjector vpZoomedOut
+        bush = RBush.empty
+  --      screenData = flip map st.meteorites $ \m ->
+  --        let lngLat = unsafePartialMapGL.makeLngLat 
+    pure unit
+  where
+    getLngLat :: Meteorite -> MapGL.LngLat
+    getLngLat m = unsafePartial fromJust $ do
+      lng <- m.coordinates !! 0
+      lat <- m.coordinates !! 1
+      pure $ MapGL.makeLngLat lng lat
+
 newtype Meteorite =
   Mereorite { class :: String
             , coordinates :: Array Number
@@ -111,6 +138,7 @@ getIconName size
 
 getIconSize :: Int -> Number
 getIconSize size = (min 100.0 (toNumber size) / 50.0) + 0.5
+
 
 -- | Config
 
