@@ -89,7 +89,7 @@ type MeteoriteState =
   , viewport :: MapGL.Viewport
   }
 
-updateCluster :: forall props.
+updateCluster :: forall props eff.
                  R.ReactThis props MeteoriteState
               -> Eff (state :: R.ReactState R.ReadWrite | eff) Unit
 updateCluster this = do
@@ -102,13 +102,13 @@ updateCluster this = do
     pure unit
   where
     getLngLat :: Meteorite -> MapGL.LngLat
-    getLngLat m = unsafePartial fromJust $ do
+    getLngLat (Meteorite m) = unsafePartial fromJust $ do
       lng <- m.coordinates !! 0
       lat <- m.coordinates !! 1
       pure $ MapGL.makeLngLat lng lat
 
 newtype Meteorite =
-  Mereorite { class :: String
+  Meteorite { class :: String
             , coordinates :: Array Number
             , mass :: String
             , name :: String
