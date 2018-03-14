@@ -94,6 +94,16 @@ mapSpec = (R.spec' getInitialState render) {componentWillMount = onComponentWill
                                               , data = meteorites
                                               }
 
+    getMeteoritesInBoundingBox :: MapGL.Viewport -> Array Meteorite -> Array Meteorite
+    getMeteoritesInBoundingBox vp ms =
+      let boundingBox = DeckGL.getBoundingBox vp
+          isInBox m = let lngLat = meteoriteLngLat m
+                      in    MapGL.lng lngLat <= boundingBox.ne.lng
+                         && MapGL.lng lngLat >= boundingBox.sw.lng
+                         && MapGL.lat lngLat <= boundingBox.ne.lat
+                         && MapGL.lat lngLat >= boundingBox.sw.lat
+      in filter isInBox ms
+
 type MapState =
   { viewport :: MapGL.Viewport
   , iconAtlas :: String
@@ -220,26 +230,23 @@ iconLayerSpec = (R.spec' getInitialState render) {componentWillReceiveProps = re
       let updatedCluster = updateCluster props
       pure $ updatedCluster
 
+
     receiveProps :: R.ComponentWillReceiveProps MeteoriteProps MeteoriteState eff
     receiveProps this newProps = do
       currentProps <- R.getProps this
-      let oldViewport = unwrap currentProps.viewport
-          newViewport = unwrap newProps.viewport
-          getMeteoriteIds = map meteoriteId
-      if   getMeteoriteIds newProps.data /= getMeteoriteIds currentProps.data
-        || oldViewport.width /= newViewport.width
-        ||  newViewport.height /= oldViewport.height
+      if map meteoriteId newProps.data /= map meteoriteId currentProps.data
         then let newZL = updateCluster newProps
              in void $ R.writeState this newZL
         else pure unit
 
 updateCluster :: MeteoriteProps -> {zoomLevels :: ZoomLevels}
 updateCluster props =
-    let vpZoomedOut = wrap $ (unwrap props.viewport) {zoom = 0.0}
+    let vp = unwrap props.viewport
+        vpZoomedOut = wrap $ vp {zoom = 0.0}
         mp = makeMercatorProjector vpZoomedOut
         bush = RBush.empty 5
         screenData = flip map props.data $ \d ->
-          let lngLat = getLngLat d
+          let lngLat = meteoriteLngLat d
               sCoords = project mp lngLat
           in { entry: d
              , x: toNumber sCoords.x
@@ -247,12 +254,6 @@ updateCluster props =
              }
         fullBush = RBush.insertMany screenData bush
     in {zoomLevels: fillOutZoomLevels screenData fullBush}
-  where
-    getLngLat :: Meteorite -> MapGL.LngLat
-    getLngLat (Meteorite m) = unsafePartial fromJust $ do
-      lng <- m.coordinates !! 0
-      lat <- m.coordinates !! 1
-      pure $ MapGL.makeLngLat lng lat
 
 --------------------------------------------------------------------------------
 -- | ZoomLevels
