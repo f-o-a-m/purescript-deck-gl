@@ -6,7 +6,7 @@
     "purescript-dom": "^4.15.0",
     "purescript-record": "^0.2.6",
     "purescript-react-dom": "^5.0.0",
-    "purescript-react-map-gl": "git://github.com/f-o-a-m/purescript-react-map-gl.git#8a2a170ea34d2135864c507e976b534484930fa9",
+    "purescript-react-map-gl": "git://github.com/f-o-a-m/purescript-react-map-gl.git#888d5bbed93e3e2b2c17f0f5ae71facd516ea680",
     "purescript-deck-gl": "../..#initial-branch",
     "purescript-transformers": "^3.5.0",
     "purescript-argonaut-generic-codecs": "^6.0.4",
