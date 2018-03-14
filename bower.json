@@ -8,14 +8,9 @@
   ],
   "dependencies": {
     "purescript-prelude": "^3.1.1",
-    "purescript-console": "^3.0.0",
-<<<<<<< HEAD
-    "purescript-maps": "^3.6.0"
-=======
     "purescript-react": "^v5.1.0",
     "purescript-maps": "^3.6.0",
     "purescript-react-map-gl": "git://github.com/f-o-a-m/purescript-react-map-gl.git#8a2a170ea34d2135864c507e976b534484930fa9"
->>>>>>> 5b8c3687b8d07a99239bdfb4516936ddfd28f1ad
   },
   "devDependencies": {
     "purescript-psci-support": "^3.0.0"
