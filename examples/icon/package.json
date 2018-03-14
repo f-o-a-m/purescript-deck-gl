@@ -1,7 +1,8 @@
 {
   "private": true,
   "scripts": {
-    "build": "pulp browserify --to ./bundle.js",
+    "postinstall": "bower install",
+    "build": "pulp browserify --to ./dist/bundle.js",
     "webpack-dev-server": "webpack-dev-server --progress --inline --hot"
   },
   "devDependencies": {
