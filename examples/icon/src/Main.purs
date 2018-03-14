@@ -13,8 +13,6 @@ import Data.Argonaut as A
 import Data.Array ((!!), (..), length, filter, foldl)
 import Data.Either (either)
 import Data.Int (floor, toNumber)
-import Data.Generic as Generic
-import Data.Generic.Rep as Rep
 import Data.Maybe (fromJust, fromMaybe)
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.Set as S
@@ -103,6 +101,7 @@ type MapState =
   , data :: Array Meteorite
   }
 
+-- | Get the initial viewport based on the window dimensions.
 initialViewport :: forall eff. Eff (dom :: DOM | eff) MapGL.Viewport
 initialViewport = do
   win <- window
@@ -118,7 +117,7 @@ initialViewport = do
                    , bearing: 0.0
                    }
 
--- | IconMapping
+-- | IconMapping entry
 newtype IconEntry =
   IconEntry { label :: String
             , x :: Int
@@ -127,9 +126,6 @@ newtype IconEntry =
             , height :: Int
             , anchorY :: Int
             }
-
-derive instance genericIconEntry :: Generic.Generic IconEntry
-derive instance genericRepIconEntry :: Rep.Generic IconEntry _
 
 instance decodeJsonIconEntry :: A.DecodeJson IconEntry where
   decodeJson json = do
@@ -142,7 +138,9 @@ instance decodeJsonIconEntry :: A.DecodeJson IconEntry where
     anchorY <- obj A..? "anchorY"
     pure $ IconEntry {label, x, y, width, height, anchorY}
 
-
+-- | Make a request to the data directory to make the `IconMapping`, which is just a mapping
+-- | from label name (e.g. marker-1) to the section of the imageAtlas which you can find the
+-- | right icon.
 buildIconMapping :: forall eff. Aff (ajax :: AJAX | eff) Icon.IconMapping
 buildIconMapping = do
     (mappingResp :: A.Json) <-  _.response <$> Affjax.get iconUrl
@@ -256,7 +254,6 @@ updateCluster props =
       lat <- m.coordinates !! 1
       pure $ MapGL.makeLngLat lng lat
 
-
 --------------------------------------------------------------------------------
 -- | ZoomLevels
 --------------------------------------------------------------------------------
@@ -324,20 +321,7 @@ newtype Meteorite =
             , year :: Int
             }
 
-meteoriteId :: Meteorite -> String
-meteoriteId (Meteorite m) =
-  m.class <> show m.coordinates <> m.mass <> m.name <> show m.year
-
-meteoriteLngLat :: Meteorite -> MapGL.LngLat
-meteoriteLngLat (Meteorite m)= unsafePartial fromJust $ do
-  x <- m.coordinates !! 0
-  y <- m.coordinates !! 1
-  pure $ MapGL.makeLngLat x y
-
 derive instance newtypeMeteorite :: Newtype Meteorite _
-
-derive instance genericMeteorite :: Generic.Generic Meteorite
-derive instance genericRepMeteorite :: Rep.Generic Meteorite _
 
 instance decodeJsonMeteorite :: A.DecodeJson Meteorite where
   decodeJson json = do
@@ -349,6 +333,19 @@ instance decodeJsonMeteorite :: A.DecodeJson Meteorite where
     year <- obj A..? "year"
     pure $ Meteorite {class: _class, coordinates, mass, name, year}
 
+-- | meteoriteId is effectively a hash of a meteorite.
+meteoriteId :: Meteorite -> String
+meteoriteId (Meteorite m) =
+  m.class <> show m.coordinates <> m.mass <> m.name <> show m.year
+
+-- | Convert the coordinates of a meteorite into LngLat
+meteoriteLngLat :: Meteorite -> MapGL.LngLat
+meteoriteLngLat (Meteorite m)= unsafePartial fromJust $ do
+  x <- m.coordinates !! 0
+  y <- m.coordinates !! 1
+  pure $ MapGL.makeLngLat x y
+
+-- | Fetch the meteorite data from the data directory.
 getMeteoriteData :: forall e . Aff (ajax :: AJAX | e) (Array Meteorite)
 getMeteoriteData = do
   let req = Affjax.defaultRequest { url = meteoritesUrl
@@ -363,6 +360,7 @@ getMeteoriteData = do
 -- | Utils and Config
 --------------------------------------------------------------------------------
 
+-- | The icon's name is based on the size of the cluster.
 getIconName :: Int -> String
 getIconName size
   | size == 0 = ""
@@ -370,12 +368,16 @@ getIconName size
   | size < 100 = "marker-" <> show (size / 10) <> "0"
   | otherwise = "marker-100"
 
+-- | Scale the icon according to the size of the cluster.
 getIconSize :: Int -> Number
 getIconSize size = (min 100.0 (toNumber size) / 50.0) + 0.5
 
+-- | The base icon size.
 iconSize :: Number
 iconSize = 60.0
 
+
+-- | data directory urls.
 meteoritesUrl :: String
 meteoritesUrl = "data/meteorites.json"
 
