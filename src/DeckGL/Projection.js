@@ -1,7 +1,8 @@
 const WMViewport = require('deck.gl').WebMercatorViewport;
 
 exports.makeMercatorProjector = function (vp) {
-    return new WMViewport(vp);
+    const mp = new WMViewport(vp);
+    return mp;
 };
 
 exports.unproject = function (projector, screenCoords) {
@@ -9,6 +10,8 @@ exports.unproject = function (projector, screenCoords) {
 };
 
 exports.project = function (projector, lngLat) {
+    console.log(projector);
+    console.log(lngLat);
     const xy = projector.project(lngLat);
     return {x: xy[0], y: xy[1]};
 };
