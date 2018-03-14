@@ -22,7 +22,7 @@ import Data.Traversable (for_)
 import Data.Tuple (Tuple(..))
 import DeckGL as DeckGL
 import DeckGL.Layer.Icon as Icon
-import DeckGL.Projection (makeMercatorProjector, project)
+import DeckGL.Projection (makeMercatorProjector, project, getBoundingBox)
 import DOM (DOM)
 import DOM.HTML (window)
 import DOM.HTML.Types (htmlDocumentToDocument)
@@ -62,6 +62,7 @@ mapSpec = (R.spec' getInitialState render) {componentWillMount = onComponentWill
     render this = do
       state <- R.readState this
       let viewport@(MapGL.Viewport vp) = state.viewport
+          relevantMeteorites = getMeteoritesInBoundingBox viewport state.data
           mapProps = { onChangeViewport: mkEffFn1 \newVp -> void $ R.transformState this _{viewport = newVp}
                      , onClick: mkEffFn1 (const $ pure unit)
                      , mapStyle: mapStyle
@@ -74,7 +75,7 @@ mapSpec = (R.spec' getInitialState render) {componentWillMount = onComponentWill
                      , bearing: vp.bearing
                      , pitch: vp.pitch
                      }
-          overlayProps = {viewport, data: state.data, iconMapping: state.iconMapping, iconAtlas: state.iconAtlas}
+          overlayProps = {viewport, data: relevantMeteorites, iconMapping: state.iconMapping, iconAtlas: state.iconAtlas}
       pure $ R.createElement MapGL.mapGL mapProps [R.createFactory iconLayerClass overlayProps]
 
     getInitialState :: forall eff'. R.GetInitialState props MapState (dom :: DOM | eff')
@@ -96,7 +97,7 @@ mapSpec = (R.spec' getInitialState render) {componentWillMount = onComponentWill
 
     getMeteoritesInBoundingBox :: MapGL.Viewport -> Array Meteorite -> Array Meteorite
     getMeteoritesInBoundingBox vp ms =
-      let boundingBox = DeckGL.getBoundingBox vp
+      let boundingBox = getBoundingBox vp
           isInBox m = let lngLat = meteoriteLngLat m
                       in    MapGL.lng lngLat <= boundingBox.ne.lng
                          && MapGL.lng lngLat >= boundingBox.sw.lng
@@ -210,8 +211,6 @@ iconLayerSpec = (R.spec' getInitialState render) {componentWillReceiveProps = re
                                                     let mId = meteoriteId meteorite
                                                     in fromMaybe 1.0 (_.size <$> Map.lookup (Tuple mId currentZoom) state.zoomLevels)
 
-                                                , autoHighlight = true
-                                                , highlightedObjectIndex = 0
                                                 })
       pure $ R.createFactory DeckGL.deckGL { layers: [iconLayer]
                                            , initializer: DeckGL.initializeGL
