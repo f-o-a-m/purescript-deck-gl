@@ -10,7 +10,7 @@ import Control.Monad.Error.Class (throwError)
 import Control.Monad.Reader (ReaderT, runReaderT, ask)
 import Control.Monad.State (execState, State, modify, get)
 import Data.Argonaut as A
-import Data.Array ((!!), (..), length, filter, foldl)
+import Data.Array ((!!), length, filter, foldl)
 import Data.Either (either)
 import Data.Int (floor, toNumber)
 import Data.Maybe (fromJust, fromMaybe)
