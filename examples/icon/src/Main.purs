@@ -9,9 +9,7 @@ import Control.Monad.Eff.Uncurried (mkEffFn1)
 import Control.Monad.Error.Class (throwError)
 import Control.Monad.Reader (ReaderT, runReaderT, ask)
 import Control.Monad.State (execState, State, modify, get)
-import Data.Argonaut (class DecodeJson, Json, decodeJson)
-import Data.Argonaut.Aeson.Decode.Generic (genericDecodeAeson)
-import Data.Argonaut.Aeson.Options (defaultOptions)
+import Data.Argonaut as A
 import Data.Array ((!!), (..), length, filter, foldl)
 import Data.Either (either)
 import Data.Int (floor, toNumber)
@@ -36,7 +34,8 @@ import DOM.Node.Types (Element, ElementId(..), documentToNonElementParentNode)
 import MapGL as MapGL
 import Math (pow)
 import Network.HTTP.Affjax (AJAX)
-import Network.HTTP.Affjax (get) as AffJax
+import Network.HTTP.Affjax (affjax, defaultRequest, get) as Affjax
+import Network.HTTP.RequestHeader (RequestHeader(..))
 import Partial.Unsafe (unsafePartial)
 import RBush as RBush
 import React as R
@@ -64,8 +63,9 @@ mapSpec ::  forall props eff . R.ReactSpec props MapState R.ReactElement (dom ::
 mapSpec = (R.spec' getInitialState render) {componentWillMount = onComponentWillMount}
   where
     render this = do
-      (MapGL.Viewport vp) <- _.viewport <$> R.readState this
-      let mapProps = { onChangeViewport: mkEffFn1 \newVp -> void $ R.transformState this _{viewport = newVp}
+      state <- R.readState this
+      let viewport@(MapGL.Viewport vp) = state.viewport
+          mapProps = { onChangeViewport: mkEffFn1 \newVp -> void $ R.transformState this _{viewport = newVp}
                      , onClick: mkEffFn1 (const $ pure unit)
                      , mapStyle: mapStyle
                      , mapboxApiAccessToken: mapboxApiAccessToken
@@ -77,13 +77,14 @@ mapSpec = (R.spec' getInitialState render) {componentWillMount = onComponentWill
                      , bearing: vp.bearing
                      , pitch: vp.pitch
                      }
-      pure $ R.createFactory MapGL.mapGL mapProps
+          overlayProps = {viewport, data: state.data, iconMapping: state.iconMapping, iconAtlas: state.iconAtlas}
+      pure $ R.createElement MapGL.mapGL mapProps [R.createFactory iconLayerClass overlayProps]
 
     getInitialState :: forall eff'. R.GetInitialState props MapState (dom :: DOM | eff')
     getInitialState this = do
       vp <- initialViewport
       pure $ { viewport: vp
-             , iconAtlas: "./../data/location-icon-mapping.png"
+             , iconAtlas: iconAtlasUrl
              , iconMapping: StrMap.empty
              , data: []
              }
@@ -131,16 +132,22 @@ newtype IconEntry =
 derive instance genericIconEntry :: Generic.Generic IconEntry
 derive instance genericRepIconEntry :: Rep.Generic IconEntry _
 
-instance decodeJsonIconEntry :: DecodeJson IconEntry where
-  decodeJson = genericDecodeAeson defaultOptions  {unwrapSingleConstructors = true}
+instance decodeJsonIconEntry :: A.DecodeJson IconEntry where
+  decodeJson json = do
+    obj <- A.decodeJson json
+    label <- obj A..? "label"
+    x <- obj A..? "x"
+    y <- obj A..? "y"
+    width <- obj A..? "width"
+    height <- obj A..? "height"
+    anchorY <- obj A..? "anchorY"
+    pure $ IconEntry {label, x, y, width, height, anchorY}
 
-iconUrl :: String
-iconUrl = "https://raw.githubusercontent.com/f-o-a-m/purescript-deck-gl/initial-branch/examples/icon/data/location-icon-mapping.json?token=Ad1MEYdtf15iMfryz_YvopHdP2Y2kC42ks5asZKjwA%3D%3D"
 
 buildIconMapping :: forall eff. Aff (ajax :: AJAX | eff) Icon.IconMapping
 buildIconMapping = do
-    (mappingResp :: Json) <-  _.response <$> AffJax.get iconUrl
-    (icons :: Array IconEntry) <- either (throwError <<< error) pure $ decodeJson mappingResp
+    (mappingResp :: A.Json) <-  _.response <$> Affjax.get iconUrl
+    (icons :: Array IconEntry) <- either (throwError <<< error) pure $ A.decodeJson mappingResp
     pure $ foldl (\mapping icon -> StrMap.insert (makeLabel icon) (makeEntry icon) mapping) StrMap.empty icons
   where
     makeLabel (IconEntry icon) = icon.label
@@ -331,13 +338,25 @@ derive instance newtypeMeteorite :: Newtype Meteorite _
 derive instance genericMeteorite :: Generic.Generic Meteorite
 derive instance genericRepMeteorite :: Rep.Generic Meteorite _
 
-instance decodeJsonMeteorite :: DecodeJson Meteorite where
-  decodeJson = genericDecodeAeson defaultOptions  {unwrapSingleConstructors = true}
+instance decodeJsonMeteorite :: A.DecodeJson Meteorite where
+  decodeJson json = do
+    obj <- A.decodeJson json
+    _class <- obj A..? "class"
+    coordinates <- obj A..? "coordinates"
+    mass <- obj A..? "mass"
+    name <- obj A..? "name"
+    year <- obj A..? "year"
+    pure $ Meteorite {class: _class, coordinates, mass, name, year}
 
 getMeteoriteData :: forall e . Aff (ajax :: AJAX | e) (Array Meteorite)
 getMeteoriteData = do
-  (meteorResp :: Json) <-  _.response <$> AffJax.get meteoritesUrl
-  either (throwError <<< error) pure $ decodeJson meteorResp
+  let req = Affjax.defaultRequest { url = meteoritesUrl
+                                  , headers = [ RequestHeader "Access-Control-Allow-Origin" "*"
+                                              , RequestHeader "Contenty-Type" "application/json"
+                                              ]
+                                  }
+  (meteorResp :: A.Json) <-  _.response <$> Affjax.affjax req
+  either (throwError <<< error) pure $ A.decodeJson meteorResp
 
 --------------------------------------------------------------------------------
 -- | Utils and Config
@@ -357,7 +376,14 @@ iconSize :: Number
 iconSize = 60.0
 
 meteoritesUrl :: String
-meteoritesUrl = "https://github.com/uber-common/deck.gl-data/blob/master/examples/icon/meteorites.json"
+meteoritesUrl = "data/meteorites.json"
+
+iconAtlasUrl :: String
+iconAtlasUrl = "data/location-icon-atlas.png"
+
+iconUrl :: String
+iconUrl = "data/location-icon-mapping.json"
+
 
 mapStyle :: String
 mapStyle = "mapbox://styles/mapbox/dark-v9"
