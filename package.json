@@ -1,0 +1,26 @@
+{
+  "name": "purescript-deck-gl",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "example": "examples"
+  },
+  "dependencies": {
+    "deck.gl": "^5.1.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/f-o-a-m/purescript-deck-gl.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/f-o-a-m/purescript-deck-gl/issues"
+  },
+  "homepage": "https://github.com/f-o-a-m/purescript-deck-gl#readme"
+}
