@@ -279,7 +279,7 @@ fillOutZoomLevel
 fillOutZoomLevel ms zoom = for_ ms $ \{x, y, entry} -> do
     bush <- ask
     known <- _.knownSet <$> get
-    if meteoriteId entry `S.member` known
+    if (meteoriteId entry <> show zoom) `S.member` known
        then pure unit
        else let box = { minX: x - radius
                       , minY: y - radius
@@ -287,7 +287,7 @@ fillOutZoomLevel ms zoom = for_ ms $ \{x, y, entry} -> do
                       , maxY: y + radius
                       }
                 allNeighbors = RBush.search box bush
-                newNeighbors = filter (\n -> not $ meteoriteId n.entry `S.member` known) allNeighbors
+                newNeighbors = filter (\n -> not $ (meteoriteId n.entry <> show zoom) `S.member` known) allNeighbors
             in for_ newNeighbors $ \node ->
                  let nodeId = meteoriteId node.entry
                  in if nodeId == meteoriteId entry
