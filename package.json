@@ -2,6 +2,11 @@
   "name": "purescript-deck-gl",
   "version": "0.1.0",
   "description": "",
+  "scripts": {
+    "build": "pulp build",
+    "postinstall": "bower i",
+    "example-icon": "pulp browserify --include examples/icon/src --to examples/icon/dist/bundle.js"
+  },
   "directories": {
     "example": "examples"
   },
@@ -17,5 +22,16 @@
   "bugs": {
     "url": "https://github.com/f-o-a-m/purescript-deck-gl/issues"
   },
-  "homepage": "https://github.com/f-o-a-m/purescript-deck-gl#readme"
+  "homepage": "https://github.com/f-o-a-m/purescript-deck-gl#readme",
+  "devDependencies": {
+    "bower": "^1.8.2",
+    "pulp": "^12.0.1",
+    "purescript": "^0.11.7",
+    "create-react-class": "^15.6.3",
+    "deck.gl": "^5.1.1",
+    "rbush": "^2.0.1",
+    "react": "^16.0.0",
+    "react-dom": "^16.0.0",
+    "react-map-gl": "^3.2.1"
+  }
 }
