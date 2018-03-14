@@ -75,7 +75,11 @@ mapSpec = (R.spec' getInitialState render) {componentWillMount = onComponentWill
                      , bearing: vp.bearing
                      , pitch: vp.pitch
                      }
-          overlayProps = {viewport, data: relevantMeteorites, iconMapping: state.iconMapping, iconAtlas: state.iconAtlas}
+          overlayProps = { viewport, data: relevantMeteorites
+                         , iconMapping: state.iconMapping
+                         , iconAtlas: state.iconAtlas
+                         , discreteZoom: floor vp.zoom
+                         }
       pure $ R.createElement MapGL.mapGL mapProps [R.createFactory iconLayerClass overlayProps]
 
     getInitialState :: forall eff'. R.GetInitialState props MapState (dom :: DOM | eff')
@@ -177,6 +181,7 @@ type MeteoriteProps =
   , data :: Array Meteorite
   , iconMapping :: Icon.IconMapping
   , iconAtlas :: String
+  , discreteZoom :: Int
   }
 
 type MeteoriteState =
@@ -193,7 +198,6 @@ iconLayerSpec = (R.spec' getInitialState render) {componentWillReceiveProps = re
       props <- R.getProps this
       state <- R.readState this
       let vp = unwrap props.viewport
-          currentZoom = floor vp.zoom
           meteoriteDate = flip map $ \m -> {meteorite: m}
           iconLayer = Icon.makeIconLayer $
                         ( Icon.defaultIconProps { id = "icon"
@@ -206,10 +210,10 @@ iconLayerSpec = (R.spec' getInitialState render) {componentWillReceiveProps = re
                                                 , getPosition = \{meteorite} -> meteoriteLngLat meteorite
                                                 , getIcon = \{meteorite} ->
                                                     let mId = meteoriteId meteorite
-                                                    in fromMaybe "marker" (_.icon <$> Map.lookup (Tuple mId currentZoom) state.zoomLevels)
+                                                    in fromMaybe "marker" (_.icon <$> Map.lookup (Tuple mId props.discreteZoom) state.zoomLevels)
                                                 , getSize = \{meteorite} ->
                                                     let mId = meteoriteId meteorite
-                                                    in fromMaybe 1.0 (_.size <$> Map.lookup (Tuple mId currentZoom) state.zoomLevels)
+                                                    in fromMaybe 1.0 (_.size <$> Map.lookup (Tuple mId props.discreteZoom) state.zoomLevels)
 
                                                 })
       pure $ R.createFactory DeckGL.deckGL { layers: [iconLayer]
@@ -233,7 +237,7 @@ iconLayerSpec = (R.spec' getInitialState render) {componentWillReceiveProps = re
     receiveProps :: R.ComponentWillReceiveProps MeteoriteProps MeteoriteState eff
     receiveProps this newProps = do
       currentProps <- R.getProps this
-      if map meteoriteId newProps.data /= map meteoriteId currentProps.data
+      if map meteoriteId newProps.data /= map meteoriteId currentProps.data || currentProps.discreteZoom /= newProps.discreteZoom
         then let newZL = updateCluster newProps
              in void $ R.writeState this newZL
         else pure unit
@@ -252,7 +256,7 @@ updateCluster props =
              , y: toNumber sCoords.y
              }
         fullBush = RBush.insertMany screenData bush
-    in {zoomLevels: fillOutZoomLevels screenData fullBush}
+    in {zoomLevels: fillOutZoomLevels screenData fullBush props.discreteZoom}
 
 --------------------------------------------------------------------------------
 -- | ZoomLevels
@@ -302,11 +306,11 @@ fillOutZoomLevel ms zoom = for_ ms $ \{x, y, entry} -> do
 fillOutZoomLevels
   :: Array (RBush.Node Meteorite)
   -> RBush.RBush Meteorite
+  -> Int
   -> ZoomLevels
-fillOutZoomLevels nodes bush =
+fillOutZoomLevels nodes bush zoom  =
   let initialState = {knownSet: S.empty, zoomLevels: Map.empty}
-      buildZoomLevelsMap = for_ (0 .. 20) (fillOutZoomLevel nodes)
-  in _.zoomLevels $ execState (runReaderT buildZoomLevelsMap bush) initialState
+  in _.zoomLevels $ execState (runReaderT (fillOutZoomLevel nodes zoom) bush) initialState
 
 
 --------------------------------------------------------------------------------
