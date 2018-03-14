@@ -1,4 +1,4 @@
-const DeckGL = require('deck.gl');
+var DeckGL = require('deck.gl');
 
 exports.makeArcLayer = function (props) {
     return new DeckGL.ArcLayer(props);

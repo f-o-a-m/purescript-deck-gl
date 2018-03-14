@@ -1,4 +1,4 @@
-const DeckGL = require('deck.gl');
+var DeckGL = require('deck.gl');
 
 exports.initializeGL = function(gl) {
     gl.enable(gl.DEPTH_TEST);

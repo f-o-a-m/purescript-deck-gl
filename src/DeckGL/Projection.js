@@ -1,7 +1,7 @@
-const WMViewport = require('deck.gl').WebMercatorViewport;
+var WMViewport = require('deck.gl').WebMercatorViewport;
 
 exports.makeMercatorProjector = function (vp) {
-    const mp = new WMViewport(vp);
+    var mp = new WMViewport(vp);
     return mp;
 };
 
@@ -13,7 +13,7 @@ exports.unproject = function (projector) {
 
 exports.project = function (projector) {
     return function(lngLat) {
-        const xy = projector.project(lngLat);
+        var xy = projector.project(lngLat);
         return {x: xy[0], y: xy[1]};
     };
 };
