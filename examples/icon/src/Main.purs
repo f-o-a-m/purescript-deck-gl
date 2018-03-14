@@ -41,7 +41,6 @@ import RBush as RBush
 import React as R
 import ReactDOM (render)
 
-
 main :: forall eff. Eff (dom :: DOM | eff) Unit
 main = void  $ elm' >>= render (R.createFactory mapClass unit)
   where
@@ -156,7 +155,7 @@ buildIconMapping = do
       , y: icon.y
       , width: icon.width
       , height: icon.height
-      , mask: true
+      , mask: false
       }
 
 --------------------------------------------------------------------------------
@@ -220,7 +219,8 @@ iconLayerSpec = (R.spec' getInitialState render) {componentWillReceiveProps = re
     getInitialState ::  R.GetInitialState MeteoriteProps MeteoriteState eff
     getInitialState this = do
       props <- R.getProps this
-      pure $ updateCluster props
+      let updatedCluster = updateCluster props
+      pure $ updatedCluster
 
     receiveProps :: R.ComponentWillReceiveProps MeteoriteProps MeteoriteState eff
     receiveProps this newProps = do
@@ -294,9 +294,9 @@ fillOutZoomLevel ms zoom = for_ ms $ \{x, y, entry} -> do
                       then modify \s -> s { zoomLevels = Map.insert (Tuple nodeId zoom) { icon: getIconName $ length newNeighbors
                                                                                         , size: getIconSize $ length newNeighbors
                                                                                         } s.zoomLevels
-                                          , knownSet = S.insert nodeId s.knownSet
+                                          , knownSet = S.insert (nodeId <> show zoom) s.knownSet
                                           }
-                      else modify \s -> s { knownSet = S.insert nodeId s.knownSet
+                      else modify \s -> s { knownSet = S.insert (nodeId <> show zoom) s.knownSet
                                           }
   where
     radius = iconSize / (2.0 `pow` toNumber (zoom + 1))
