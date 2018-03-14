@@ -1,7 +1,18 @@
-## Run instructions
+## Building
+From the root of the project:
+
 ```bash
 > npm install
-> bower install
+> npm run build
+> npm run example-icon
+```
+
+and serve `dist/` using a webserver.
+
+Alternatively, build it from the current directory:
+
+```bash
+> npm install
 > npm run webpack-dev-server
 ```
 
