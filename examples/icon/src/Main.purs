@@ -279,7 +279,7 @@ fillOutZoomLevel
 fillOutZoomLevel ms zoom = for_ ms $ \{x, y, entry} -> do
     bush <- ask
     known <- _.knownSet <$> get
-    if (meteoriteId entry <> show zoom) `S.member` known
+    if entryZoomHash entry `S.member` known
        then pure unit
        else let box = { minX: x - radius
                       , minY: y - radius
@@ -287,18 +287,19 @@ fillOutZoomLevel ms zoom = for_ ms $ \{x, y, entry} -> do
                       , maxY: y + radius
                       }
                 allNeighbors = RBush.search box bush
-                newNeighbors = filter (\n -> not $ (meteoriteId n.entry <> show zoom) `S.member` known) allNeighbors
+                newNeighbors = filter (\n -> not $ entryZoomHash n.entry `S.member` known) allNeighbors
             in for_ newNeighbors $ \node ->
                  let nodeId = meteoriteId node.entry
                  in if nodeId == meteoriteId entry
                       then modify \s -> s { zoomLevels = Map.insert (Tuple nodeId zoom) { icon: getIconName $ length newNeighbors
                                                                                         , size: getIconSize $ length newNeighbors
                                                                                         } s.zoomLevels
-                                          , knownSet = S.insert (nodeId <> show zoom) s.knownSet
+                                          , knownSet = S.insert (entryZoomHash node.entry) s.knownSet
                                           }
-                      else modify \s -> s { knownSet = S.insert (nodeId <> show zoom) s.knownSet
+                      else modify \s -> s { knownSet = S.insert (entryZoomHash node.entry) s.knownSet
                                           }
   where
+    entryZoomHash e = meteoriteId e <> show zoom
     radius = iconSize / (2.0 `pow` toNumber (zoom + 1))
 
 fillOutZoomLevels
