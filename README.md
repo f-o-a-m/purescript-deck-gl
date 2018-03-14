@@ -1,4 +1,5 @@
 # purescript-deck-gl
+<img src=https://github.com/f-o-a-m/purescript-web3/blob/master/purescript-web3-logo.png width="75">
 
 [![Build Status](https://travis-ci.org/f-o-a-m/purescript-deck-gl.svg?branch=master)](https://travis-ci.org/f-o-a-m/purescript-deck-gl)
 
