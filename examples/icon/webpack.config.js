@@ -1,4 +1,5 @@
 'use strict';
+const path = require('path');
 
 module.exports = {
   entry: './src/App',
@@ -8,13 +9,13 @@ module.exports = {
   devtool: 'eval',
 
   devServer: {
-    contentBase: '.',
+    contentBase: path.join(__dirname, "dist"),
     port: 4008,
     stats: 'errors-only'
   },
 
   output: {
-    path: __dirname,
+    path: path.join(__dirname, "dist"),
     pathinfo: true,
     filename: 'bundle.js'
   },
