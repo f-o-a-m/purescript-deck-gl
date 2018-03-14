@@ -54,7 +54,7 @@ main = void  $ elm' >>= render (R.createFactory mapClass unit)
 --------------------------------------------------------------------------------
 
 mapClass :: forall props . R.ReactClass props
-mapClass = aR.createClass mapSpec
+mapClass = R.createClass mapSpec
 
 mapSpec ::  forall props eff . R.ReactSpec props MapState R.ReactElement (dom :: DOM, ajax :: AJAX | eff)
 mapSpec = (R.spec' getInitialState render) {componentWillMount = onComponentWillMount}
