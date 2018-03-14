@@ -1,0 +1,21 @@
+{
+  "name": "purescript-deck-gl",
+  "version": "0.1.0",
+  "description": "",
+  "directories": {
+    "example": "examples"
+  },
+  "dependencies": {
+    "deck.gl": "^5.1.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/f-o-a-m/purescript-deck-gl.git"
+  },
+  "author": "Martin Allen",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/f-o-a-m/purescript-deck-gl/issues"
+  },
+  "homepage": "https://github.com/f-o-a-m/purescript-deck-gl#readme"
+}
