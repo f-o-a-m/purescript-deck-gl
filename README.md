@@ -11,6 +11,8 @@ This is a purescript-react wrapper around Uber's [deck.gl](https://github.com/ub
 
 There is an example project demonstrating the basic features of icon layer. You can build it yourself or view the hosted version [here](https://f-o-a-m.github.io/purescript-deck-gl/).
 
+You can see the full gallery of examples [here](https://uber.github.io/deck.gl/#/examples/overview?section=core-layers)
+
 ## installation
 
 ```bash
