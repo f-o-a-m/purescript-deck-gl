@@ -1,3 +1,6 @@
+## What is it
+This example was transcribed from the [deck.gl icon example](https://github.com/uber/deck.gl/tree/master/examples/icon). It is showing data about known meteorite landings. The landings are clustered, and the radius of the clustering changes dynamically with the zoom level.
+
 ## Building
 From the root of the project:
 
