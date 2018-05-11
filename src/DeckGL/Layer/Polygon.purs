@@ -2,7 +2,7 @@ module DeckGL.Layer.Polygon where
 
 import DeckGL (Layer)
 import DeckGL.BaseProps (BaseProps)
-import MapGL (LngLat)
+import WebMercator.LngLat (LngLat)
 
 foreign import defaultPolygonProps :: forall eff. PolygonLayerProps eff
 

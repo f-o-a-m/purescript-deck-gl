@@ -2,7 +2,7 @@ module DeckGL.Layer.Scatterplot where
 
 import DeckGL (Layer)
 import DeckGL.BaseProps (BaseProps)
-import MapGL (LngLat)
+import WebMercator.LngLat (LngLat)
 
 foreign import defaultScatterplotProps :: forall eff . ScatterplotLayerProps eff
 foreign import makeScatterplotLayer :: forall eff . ScatterplotLayerProps eff -> Layer

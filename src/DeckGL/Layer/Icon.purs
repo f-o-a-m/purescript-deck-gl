@@ -2,7 +2,7 @@ module DeckGL.Layer.Icon where
 
 import DeckGL (Layer)
 import DeckGL.BaseProps (BaseProps)
-import MapGL (LngLat)
+import WebMercator.LngLat (LngLat)
 import Data.StrMap
 
 foreign import defaultIconProps :: forall d eff . IconLayerProps d eff

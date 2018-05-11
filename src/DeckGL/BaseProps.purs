@@ -1,7 +1,7 @@
 module DeckGL.BaseProps where
 
 import DeckGL (Layer)
-import MapGL (LngLat)
+import WebMercator.LngLat (LngLat)
 import Control.Monad.Eff.Uncurried (EffFn1)
 
 
