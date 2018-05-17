@@ -2,7 +2,7 @@ module DeckGL.Layer.ScreenGrid where
 
 import DeckGL (Layer)
 import DeckGL.BaseProps (BaseProps)
-import MapGL (LngLat)
+import WebMercator.LngLat (LngLat)
 
 foreign import defaultScreenGridProps :: forall eff . ScreenGridLayerProps eff
 foreign import makeScreenGridLayer :: forall eff . ScreenGridLayerProps eff -> Layer

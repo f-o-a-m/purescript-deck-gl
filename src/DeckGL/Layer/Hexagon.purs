@@ -2,7 +2,7 @@ module DeckGL.Layer.Hexagon where
 
 import DeckGL (Layer)
 import DeckGL.BaseProps (BaseProps, LightSettings)
-import MapGL (LngLat)
+import WebMercator.LngLat (LngLat)
 
 foreign import defaultHexagonProps :: forall eff . HexagonLayerProps eff
 

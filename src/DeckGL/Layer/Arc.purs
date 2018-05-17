@@ -2,7 +2,7 @@ module DeckGL.Layer.Arc where
 
 import DeckGL (Layer)
 import DeckGL.BaseProps (BaseProps)
-import MapGL (LngLat)
+import WebMercator.LngLat (LngLat)
 
 foreign import defaultArcProps :: forall eff . ArcLayerProps eff
 foreign import makeArcLayer :: forall eff . ArcLayerProps eff -> Layer

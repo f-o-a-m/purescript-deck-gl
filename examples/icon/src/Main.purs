@@ -1,6 +1,7 @@
 module Main where
 
 import Prelude
+
 import Control.Monad.Aff (Aff, launchAff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
@@ -9,26 +10,26 @@ import Control.Monad.Eff.Uncurried (mkEffFn1)
 import Control.Monad.Error.Class (throwError)
 import Control.Monad.Reader (ReaderT, runReaderT, ask)
 import Control.Monad.State (execState, State, modify, get)
-import Data.Argonaut as A
-import Data.Array ((!!), length, filter, foldl)
-import Data.Either (either)
-import Data.Int (floor, toNumber)
-import Data.Maybe (fromJust, fromMaybe)
-import Data.Newtype (class Newtype, unwrap, wrap)
-import Data.Set as S
-import Data.StrMap as StrMap
-import Data.Map as Map
-import Data.Traversable (for_)
-import Data.Tuple (Tuple(..))
-import DeckGL as DeckGL
-import DeckGL.Layer.Icon as Icon
-import DeckGL.Projection (makeMercatorProjector, project, getBoundingBox)
 import DOM (DOM)
 import DOM.HTML (window)
 import DOM.HTML.Types (htmlDocumentToDocument)
 import DOM.HTML.Window as Window
 import DOM.Node.NonElementParentNode (getElementById)
 import DOM.Node.Types (Element, ElementId(..), documentToNonElementParentNode)
+import Data.Argonaut as A
+import Data.Array ((!!), length, filter, foldl)
+import Data.Either (either)
+import Data.Int (floor, toNumber)
+import Data.Map as Map
+import Data.Maybe (fromJust, fromMaybe)
+import Data.Newtype (class Newtype, unwrap)
+import Data.Record.Builder (build, merge)
+import Data.Set as S
+import Data.StrMap as StrMap
+import Data.Traversable (for_)
+import Data.Tuple (Tuple(..))
+import DeckGL as DeckGL
+import DeckGL.Layer.Icon as Icon
 import MapGL as MapGL
 import Math (pow)
 import Network.HTTP.Affjax (AJAX)
@@ -38,6 +39,11 @@ import Partial.Unsafe (unsafePartial)
 import RBush as RBush
 import React as R
 import ReactDOM (render)
+import WebMercator.LngLat (LngLat)
+import WebMercator.LngLat as LngLat
+import WebMercator.Pixel as Pixel
+import WebMercator.Viewport (ViewportR)
+import WebMercator.Viewport as Viewport
 
 main :: forall eff. Eff (dom :: DOM | eff) Unit
 main = void  $ elm' >>= render (R.createFactory mapClass unit)
@@ -62,19 +68,13 @@ mapSpec = (R.spec' getInitialState render) {componentWillMount = onComponentWill
     render this = do
       state <- R.readState this
       let viewport@(MapGL.Viewport vp) = state.viewport
-          relevantMeteorites = getMeteoritesInBoundingBox viewport state.data
-          mapProps = { onChangeViewport: mkEffFn1 \newVp -> void $ R.transformState this _{viewport = newVp}
-                     , onClick: mkEffFn1 (const $ pure unit)
-                     , mapStyle: mapStyle
-                     , mapboxApiAccessToken: mapboxApiAccessToken
-                     , width: vp.width
-                     , height: vp.height
-                     , latitude: vp.latitude
-                     , longitude: vp.longitude
-                     , zoom: vp.zoom
-                     , bearing: vp.bearing
-                     , pitch: vp.pitch
-                     }
+          relevantMeteorites = getMeteoritesInBoundingBox vp state.data
+          mapProps = build (merge vp)
+            { onViewportChange: mkEffFn1 \newVp -> void $ R.transformState this _{viewport = newVp}
+            , onClick: mkEffFn1 (const $ pure unit)
+            , mapStyle: mapStyle
+            , mapboxApiAccessToken: mapboxApiAccessToken
+            }
           overlayProps = { viewport, data: relevantMeteorites
                          , iconMapping: state.iconMapping
                          , iconAtlas: state.iconAtlas
@@ -85,7 +85,7 @@ mapSpec = (R.spec' getInitialState render) {componentWillMount = onComponentWill
     getInitialState :: forall eff'. R.GetInitialState props MapState (dom :: DOM | eff')
     getInitialState this = do
       vp <- initialViewport
-      pure $ { viewport: vp
+      pure $ { viewport: MapGL.Viewport vp
              , iconAtlas: iconAtlasUrl
              , iconMapping: StrMap.empty
              , data: []
@@ -99,15 +99,9 @@ mapSpec = (R.spec' getInitialState render) {componentWillMount = onComponentWill
                                               , data = meteorites
                                               }
 
-    getMeteoritesInBoundingBox :: MapGL.Viewport -> Array Meteorite -> Array Meteorite
-    getMeteoritesInBoundingBox vp ms =
-      let boundingBox = getBoundingBox vp
-          isInBox m = let lngLat = meteoriteLngLat m
-                      in    MapGL.lng lngLat <= boundingBox.ne.lng
-                         && MapGL.lng lngLat >= boundingBox.sw.lng
-                         && MapGL.lat lngLat <= boundingBox.ne.lat
-                         && MapGL.lat lngLat >= boundingBox.sw.lat
-      in filter isInBox ms
+    getMeteoritesInBoundingBox :: Record (ViewportR ()) -> Array Meteorite -> Array Meteorite
+    getMeteoritesInBoundingBox vp = filter
+      $ Viewport.isInBoundingBox (Viewport.boundingBox $ Viewport.pack vp) <<< meteoriteLngLat
 
 type MapState =
   { viewport :: MapGL.Viewport
@@ -117,20 +111,20 @@ type MapState =
   }
 
 -- | Get the initial viewport based on the window dimensions.
-initialViewport :: forall eff. Eff (dom :: DOM | eff) MapGL.Viewport
+initialViewport :: forall eff. Eff (dom :: DOM | eff) (Record (ViewportR ()))
 initialViewport = do
   win <- window
   w <- Window.innerWidth win
   h <- Window.innerHeight win
-  pure $
-    MapGL.Viewport { width: w
-                   , height: h
-                   , longitude: -35.0
-                   , latitude: 36.7
-                   , zoom: 1.8
-                   , pitch: 0.0
-                   , bearing: 0.0
-                   }
+  pure
+    { width: toNumber w
+    , height: toNumber h
+    , longitude: -35.0
+    , latitude: 36.7
+    , zoom: 1.8
+    , pitch: 0.0
+    , bearing: 0.0
+    }
 
 -- | IconMapping entry
 newtype IconEntry =
@@ -216,16 +210,12 @@ iconLayerSpec = (R.spec' getInitialState render) {componentWillReceiveProps = re
                                                     in fromMaybe 1.0 (_.size <$> Map.lookup (Tuple mId props.discreteZoom) state.zoomLevels)
 
                                                 })
-      pure $ R.createFactory DeckGL.deckGL { layers: [iconLayer]
-                                           , initializer: DeckGL.initializeGL
-                                           , zoom: vp.zoom
-                                           , width: vp.width
-                                           , height: vp.height
-                                           , latitude: vp.latitude
-                                           , longitude: vp.longitude
-                                           , pitch: vp.pitch
-                                           , bearing: vp.bearing
-                                           }
+      pure
+        $ R.createFactory DeckGL.deckGL
+        $ build (merge vp)
+          { layers: [iconLayer]
+          , initializer: DeckGL.initializeGL
+          }
 
     getInitialState ::  R.GetInitialState MeteoriteProps MeteoriteState eff
     getInitialState this = do
@@ -245,15 +235,14 @@ iconLayerSpec = (R.spec' getInitialState render) {componentWillReceiveProps = re
 updateCluster :: MeteoriteProps -> {zoomLevels :: ZoomLevels}
 updateCluster props =
     let vp = unwrap props.viewport
-        vpZoomedOut = wrap $ vp {zoom = 0.0}
-        mp = makeMercatorProjector vpZoomedOut
+        vpZoomedOut = vp {zoom = 0.0}
+        prj = Viewport.project $ Viewport.pack vpZoomedOut
         bush = RBush.empty 5
         screenData = flip map props.data $ \d ->
-          let lngLat = meteoriteLngLat d
-              sCoords = project mp lngLat
+          let sCoords = prj $ meteoriteLngLat d
           in { entry: d
-             , x: toNumber sCoords.x
-             , y: toNumber sCoords.y
+             , x: Pixel.x sCoords
+             , y: Pixel.y sCoords
              }
         fullBush = RBush.insertMany screenData bush
     in {zoomLevels: fillOutZoomLevels screenData fullBush props.discreteZoom}
@@ -343,11 +332,11 @@ meteoriteId (Meteorite m) =
   m.class <> show m.coordinates <> m.mass <> m.name <> show m.year
 
 -- | Convert the coordinates of a meteorite into LngLat
-meteoriteLngLat :: Meteorite -> MapGL.LngLat
-meteoriteLngLat (Meteorite m)= unsafePartial fromJust $ do
-  x <- m.coordinates !! 0
-  y <- m.coordinates !! 1
-  pure $ MapGL.makeLngLat x y
+meteoriteLngLat :: Meteorite -> LngLat
+meteoriteLngLat (Meteorite m) = LngLat.make $ unsafePartial fromJust $ 
+  {lng: _, lat: _}
+    <$> m.coordinates !! 0
+    <*> m.coordinates !! 1
 
 -- | Fetch the meteorite data from the data directory.
 getMeteoriteData :: forall e . Aff (ajax :: AJAX | e) (Array Meteorite)
