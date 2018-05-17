@@ -24,7 +24,7 @@
     "purescript-argonaut-core": "^3.1.1",
     "purescript-sets": "^3.1.0",
     "purescript-argonaut": "^3.1.0",
-    "purescript-react-map-gl": "git://github.com/f-o-a-m/purescript-react-map-gl.git#mercator",
+    "purescript-react-map-gl": "f-o-a-m/purescript-react-map-gl#0.3.0",
     "purescript-psci-support": "^3.0.0"
   }
 }
