@@ -20,13 +20,15 @@ You can see the full gallery of examples [here](https://uber.github.io/deck.gl/#
 > npm run build
 ```
 
-## examples
 
-```bash
-> npm run example-icon
-```
+## Example
 
-and serve `example/icon/dist`
+You can see some examples in `example` directory. It is also hosted [here](https://f-o-a-m.github.io/purescript-deck-gl/)
+
+## npm requirements
+- react >= 16.0.0
+- deck.gl >= 5.1.1"
+
 
 ## acknowledgements
 [ben](https://github.com/benweitzman) did a lot of the work setting up the configuration layers before he went on to make astral charts at [costar](https://www.costarastrology.com/)
