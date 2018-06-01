@@ -214,7 +214,6 @@ iconLayerSpec = (R.spec' getInitialState render) {componentWillReceiveProps = re
         $ R.createFactory DeckGL.deckGL
         $ build (merge vp)
           { layers: [iconLayer]
-          , initializer: DeckGL.initializeGL
           }
 
     getInitialState ::  R.GetInitialState MeteoriteProps MeteoriteState eff
