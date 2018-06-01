@@ -197,7 +197,7 @@ iconLayerSpec = (R.spec' getInitialState render) {componentWillReceiveProps = re
                         ( Icon.defaultIconProps { id = "icon"
                                                 , data = map (\m -> {meteorite : m}) props.data
                                                 , pickable = false
-                                                , fp64 = false
+                                                , fp64 = true
                                                 , visible = true
                                                 , iconAtlas = props.iconAtlas
                                                 , iconMapping = props.iconMapping
