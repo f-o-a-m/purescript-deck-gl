@@ -37,5 +37,6 @@ type IconLayerProps d eff = BaseProps
   , getPosition :: IconData d -> LngLat
   , getSize :: IconData d -> Number
   , getIcon :: IconData d -> String
+  , getColor :: IconData d -> Array Number
   )
   (IconData d)

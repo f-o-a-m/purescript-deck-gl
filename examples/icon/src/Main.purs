@@ -197,6 +197,7 @@ iconLayerSpec = (R.spec' getInitialState render) {componentWillReceiveProps = re
                         ( Icon.defaultIconProps { id = "icon"
                                                 , data = map (\m -> {meteorite : m}) props.data
                                                 , pickable = false
+                                                , fp64 = false
                                                 , visible = true
                                                 , iconAtlas = props.iconAtlas
                                                 , iconMapping = props.iconMapping
@@ -214,7 +215,6 @@ iconLayerSpec = (R.spec' getInitialState render) {componentWillReceiveProps = re
         $ R.createFactory DeckGL.deckGL
         $ build (merge vp)
           { layers: [iconLayer]
-          , initializer: DeckGL.initializeGL
           }
 
     getInitialState ::  R.GetInitialState MeteoriteProps MeteoriteState eff

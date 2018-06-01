@@ -6,11 +6,11 @@ import WebMercator.Viewport (ViewportR)
 foreign import data Layer :: Type
 foreign import data GLInitializer :: Type
 
-foreign import initializeGL :: GLInitializer
+foreign import defaultDeckGLProps :: DeckGLProps
+
 
 type MapPropsR r =
   ( layers :: Array Layer
-  , initializer :: GLInitializer
   | r
   )
 

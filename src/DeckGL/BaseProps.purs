@@ -41,6 +41,7 @@ type LightSettings =
 -- | - `visibility`: Controls the visibility of the layer, should use instead of conditional rendering.
 -- | - `opacity`: The opacity of the layer.
 -- | - `pickable`: Whether the layer responds to mouse picking events.
+-- | - `fp64`: Whether the layer should be rendered in high-precision 64-bit mode
 -- | - `onHover`: Callback that gets called when hovering on an object.
 -- | - `onClick`: Callback for clicking on an object in a layer.
 -- | - `autoHighlight`: When true, the current object pointed to by the mouse on hover is highlighted with the color
@@ -53,6 +54,7 @@ type BaseProps eff rest a =
   , visible :: Boolean
   , opacity :: Number
   , pickable :: Boolean
+  , fp64 :: Boolean
   , onHover :: EffFn1 eff (PickingInfo a) Boolean
   , onClick :: EffFn1 eff (PickingInfo a) Boolean
   , autoHighlight :: Boolean
