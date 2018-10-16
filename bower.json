@@ -10,7 +10,7 @@
     "purescript-prelude": "^3.1.1",
     "purescript-react": "^v5.1.0",
     "purescript-maps": "^3.6.0",
-    "purescript-web-mercator": "f-o-a-m/purescript-web-mercator#0.1.0"
+    "purescript-web-mercator": "f-o-a-m/purescript-web-mercator#0.1.1"
   },
   "devDependencies": {
     "purescript-dom": "^4.15.0",
@@ -24,7 +24,7 @@
     "purescript-argonaut-core": "^3.1.1",
     "purescript-sets": "^3.1.0",
     "purescript-argonaut": "^3.1.0",
-    "purescript-react-map-gl": "f-o-a-m/purescript-react-map-gl#0.3.0",
+    "purescript-react-map-gl": "f-o-a-m/purescript-react-map-gl#0.3.1",
     "purescript-psci-support": "^3.0.0"
   }
 }
