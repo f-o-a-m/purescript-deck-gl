@@ -4,9 +4,9 @@ import DeckGL (Layer)
 import DeckGL.BaseProps (BaseProps)
 import WebMercator.LngLat (LngLat)
 
-foreign import defaultPolygonProps :: forall eff. PolygonLayerProps eff
+foreign import defaultPolygonProps :: PolygonLayerProps
 
-foreign import makePolygonLayer :: forall eff . PolygonLayerProps eff -> Layer
+foreign import makePolygonLayer :: PolygonLayerProps -> Layer
 
 type PolygonData =
   { polygon :: Array LngLat
@@ -16,10 +16,9 @@ type PolygonData =
   , color :: Array Int
   }
 
-type PolygonLayerProps eff = BaseProps
-    eff
-    (stroked :: Boolean
-    ,lineWidthMinPixels :: Int
-    ,fp64 :: Boolean
-    )
-    PolygonData
+type PolygonLayerProps = BaseProps
+  ( stroked :: Boolean
+  , lineWidthMinPixels :: Int
+  , fp64 :: Boolean
+  )
+  PolygonData
