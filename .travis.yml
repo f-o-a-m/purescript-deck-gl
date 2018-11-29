@@ -4,8 +4,10 @@ sudo: required
 node_js: stable
 install:
   - npm i
-  - npm run build
+  - bower i --production
 script:
+  - npm run build
+  - bower i
   - npm run -s example-icon
 deploy:
   provider: pages
