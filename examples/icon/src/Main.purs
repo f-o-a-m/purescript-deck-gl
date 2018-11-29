@@ -15,13 +15,11 @@ import Data.Newtype (class Newtype, unwrap)
 import Data.Set as S
 import Data.Traversable (for_)
 import Data.Tuple (Tuple(..))
-import Debug.Trace (traceM)
 import DeckGL as DeckGL
 import DeckGL.Layer.Icon as Icon
 import Effect (Effect)
 import Effect.Aff (Aff, launchAff_)
 import Effect.Class (liftEffect)
-import Effect.Class.Console (log)
 import Effect.Exception (error)
 import Effect.Uncurried (mkEffectFn1)
 import Foreign.Object as Object
@@ -34,7 +32,7 @@ import Partial.Unsafe (unsafePartial)
 import RBush as RBush
 import React as R
 import ReactDOM (render)
-import Record (disjointUnion)
+import Record (disjointUnion, merge)
 import Web.DOM (Element)
 import Web.DOM.NonElementParentNode (getElementById)
 import Web.HTML (window)
@@ -202,6 +200,7 @@ iconLayerClass = R.component "IconLayer" \this -> do
                                                 , visible = true
                                                 , iconAtlas = props.iconAtlas
                                                 , iconMapping = props.iconMapping
+                                                , opacity = 1.0
                                                 , sizeScale = 2.0 * iconSize
                                                 , getPosition = \{meteorite} -> meteoriteLngLat meteorite
                                                 , getIcon = \{meteorite} ->
@@ -214,11 +213,7 @@ iconLayerClass = R.component "IconLayer" \this -> do
                                                 })
       pure
         $ R.createLeafElement DeckGL.deckGL
-        $ vp `disjointUnion`
-            { layers: [iconLayer]
-            , onLayerClick: DeckGL.defaultDeckGLProps.onLayerClick
-            , onLayerHover: DeckGL.defaultDeckGLProps.onLayerHover
-            }
+        $ vp `merge` DeckGL.defaultDeckGLProps {layers = [iconLayer]}
 
 
     componentWillReceiveProps :: R.ReactThis MeteoriteProps MeteoriteState -> R.ComponentWillReceiveProps MeteoriteProps
