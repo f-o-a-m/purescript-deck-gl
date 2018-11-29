@@ -2,7 +2,7 @@ module DeckGL.BaseProps where
 
 import DeckGL (Layer)
 import WebMercator.LngLat (LngLat)
-import Control.Monad.Eff.Uncurried (EffFn1)
+import Effect.Uncurried (EffectFn1)
 
 
 -- | The picking engine returns objects of type `PickingInfo a` describing what
@@ -33,7 +33,7 @@ type LightSettings =
   , numberOfLights :: Int
   }
 
--- | `BaseProps eff rest a` are basic properties that all layers share. There are
+-- | `BaseProps rest a` are basic properties that all layers share. There are
 -- | many properties, but they all have sensible defaults in the library should you choose
 -- | not to set them. See https://github.com/uber/deck.gl/blob/master/docs/api-reference/layer.md.
 -- | - `id`: A unique name for the layer.
@@ -48,15 +48,15 @@ type LightSettings =
 -- | - `highlightColor`: RGBA array for highlighted objects.
 -- | Note: If a callback returns a truthy value, the hover event is marked as handled and will not bubble up to
 -- | the onLayerClick callback of the DeckGL canvas.
-type BaseProps eff rest a =
+type BaseProps rest a =
   { id :: String
   , data :: Array a
   , visible :: Boolean
   , opacity :: Number
   , pickable :: Boolean
   , fp64 :: Boolean
-  , onHover :: EffFn1 eff (PickingInfo a) Boolean
-  , onClick :: EffFn1 eff (PickingInfo a) Boolean
+  , onHover :: EffectFn1 (PickingInfo a) Boolean
+  , onClick :: EffectFn1 (PickingInfo a) Boolean
   , autoHighlight :: Boolean
   , highlightedObjectIndex :: Int
   , highlightColor :: Array Int

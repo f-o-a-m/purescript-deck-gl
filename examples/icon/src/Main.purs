@@ -2,20 +2,9 @@ module Main where
 
 import Prelude
 
-import Control.Monad.Aff (Aff, launchAff)
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Class (liftEff)
-import Control.Monad.Eff.Exception (error)
-import Control.Monad.Eff.Uncurried (mkEffFn1)
 import Control.Monad.Error.Class (throwError)
 import Control.Monad.Reader (ReaderT, runReaderT, ask)
 import Control.Monad.State (execState, State, modify, get)
-import DOM (DOM)
-import DOM.HTML (window)
-import DOM.HTML.Types (htmlDocumentToDocument)
-import DOM.HTML.Window as Window
-import DOM.Node.NonElementParentNode (getElementById)
-import DOM.Node.Types (Element, ElementId(..), documentToNonElementParentNode)
 import Data.Argonaut as A
 import Data.Array ((!!), length, filter, foldl)
 import Data.Either (either)
@@ -23,55 +12,79 @@ import Data.Int (floor, toNumber)
 import Data.Map as Map
 import Data.Maybe (fromJust, fromMaybe)
 import Data.Newtype (class Newtype, unwrap)
-import Data.Record.Builder (build, merge)
 import Data.Set as S
-import Data.StrMap as StrMap
 import Data.Traversable (for_)
 import Data.Tuple (Tuple(..))
 import DeckGL as DeckGL
 import DeckGL.Layer.Icon as Icon
+import Effect (Effect)
+import Effect.Aff (Aff, launchAff_)
+import Effect.Class (liftEffect)
+import Effect.Exception (error)
+import Effect.Uncurried (mkEffectFn1)
+import Foreign.Object as Object
 import MapGL as MapGL
 import Math (pow)
-import Network.HTTP.Affjax (AJAX)
 import Network.HTTP.Affjax (affjax, defaultRequest, get) as Affjax
+import Network.HTTP.Affjax.Response (json)
 import Network.HTTP.RequestHeader (RequestHeader(..))
 import Partial.Unsafe (unsafePartial)
 import RBush as RBush
 import React as R
 import ReactDOM (render)
+import Record (disjointUnion, merge)
+import Web.DOM (Element)
+import Web.DOM.NonElementParentNode (getElementById)
+import Web.HTML (window)
+import Web.HTML.HTMLDocument as HTMLDocument
+import Web.HTML.Window as Window
 import WebMercator.LngLat (LngLat)
 import WebMercator.LngLat as LngLat
 import WebMercator.Pixel as Pixel
 import WebMercator.Viewport (ViewportR)
 import WebMercator.Viewport as Viewport
 
-main :: forall eff. Eff (dom :: DOM | eff) Unit
-main = void  $ elm' >>= render (R.createFactory mapClass unit)
+main :: Effect Unit
+main = void $ elm' >>= render (R.createLeafElement mapClass {})
   where
-    elm' :: Eff (dom :: DOM | eff) Element
+    elm' :: Effect Element
     elm' = do
       win <- window
       doc <- Window.document win
-      elm <- getElementById (ElementId "app") (documentToNonElementParentNode (htmlDocumentToDocument doc))
+      elm <- getElementById "app" (HTMLDocument.toNonElementParentNode doc)
       pure $ unsafePartial (fromJust elm)
 
 --------------------------------------------------------------------------------
 -- | Map Component
 --------------------------------------------------------------------------------
 
-mapClass :: forall props . R.ReactClass props
-mapClass = R.createClass mapSpec
-
-mapSpec ::  forall props eff . R.ReactSpec props MapState R.ReactElement (dom :: DOM, ajax :: AJAX | eff)
-mapSpec = (R.spec' getInitialState render) {componentWillMount = onComponentWillMount}
+mapClass :: R.ReactClass {}
+mapClass = R.component "Map" \this -> do
+  vp <- initialViewport
+  launchAff_ do
+    iconMapping <- buildIconMapping
+    meteorites <- getMeteoriteData
+    liftEffect $ R.modifyState this _
+      { iconMapping = iconMapping
+      , data = meteorites
+      }
+  pure
+    { render: render this
+    , state:
+        { viewport: MapGL.Viewport vp
+        , iconAtlas: iconAtlasUrl
+        , iconMapping: Object.empty
+        , data: []
+        }
+    }
   where
     render this = do
-      state <- R.readState this
+      state <- R.getState this
       let viewport@(MapGL.Viewport vp) = state.viewport
           relevantMeteorites = getMeteoritesInBoundingBox vp state.data
-          mapProps = build (merge vp)
-            { onViewportChange: mkEffFn1 \newVp -> void $ R.transformState this _{viewport = newVp}
-            , onClick: mkEffFn1 (const $ pure unit)
+          mapProps = vp `disjointUnion`
+            { onViewportChange: mkEffectFn1 \newVp -> void $ R.modifyState this _{viewport = newVp}
+            , onClick: mkEffectFn1 (const $ pure unit)
             , mapStyle: mapStyle
             , mapboxApiAccessToken: mapboxApiAccessToken
             }
@@ -80,24 +93,7 @@ mapSpec = (R.spec' getInitialState render) {componentWillMount = onComponentWill
                          , iconAtlas: state.iconAtlas
                          , discreteZoom: floor vp.zoom
                          }
-      pure $ R.createElement MapGL.mapGL mapProps [R.createFactory iconLayerClass overlayProps]
-
-    getInitialState :: forall eff'. R.GetInitialState props MapState (dom :: DOM | eff')
-    getInitialState this = do
-      vp <- initialViewport
-      pure $ { viewport: MapGL.Viewport vp
-             , iconAtlas: iconAtlasUrl
-             , iconMapping: StrMap.empty
-             , data: []
-             }
-
-    onComponentWillMount :: forall eff'. R.ComponentWillMount props MapState (ajax :: AJAX | eff')
-    onComponentWillMount this = void <<< launchAff $ do
-      iconMapping <- buildIconMapping
-      meteorites <- getMeteoriteData
-      void $ liftEff $ R.transformState this _{ iconMapping = iconMapping
-                                              , data = meteorites
-                                              }
+      pure $ R.createElement MapGL.mapGL mapProps [R.createLeafElement iconLayerClass overlayProps]
 
     getMeteoritesInBoundingBox :: Record (ViewportR ()) -> Array Meteorite -> Array Meteorite
     getMeteoritesInBoundingBox vp = filter
@@ -111,7 +107,7 @@ type MapState =
   }
 
 -- | Get the initial viewport based on the window dimensions.
-initialViewport :: forall eff. Eff (dom :: DOM | eff) (Record (ViewportR ()))
+initialViewport :: Effect (Record (ViewportR ()))
 initialViewport = do
   win <- window
   w <- Window.innerWidth win
@@ -150,11 +146,11 @@ instance decodeJsonIconEntry :: A.DecodeJson IconEntry where
 -- | Make a request to the data directory to make the `IconMapping`, which is just a mapping
 -- | from label name (e.g. marker-1) to the section of the imageAtlas which you can find the
 -- | right icon.
-buildIconMapping :: forall eff. Aff (ajax :: AJAX | eff) Icon.IconMapping
+buildIconMapping :: Aff Icon.IconMapping
 buildIconMapping = do
-    (mappingResp :: A.Json) <-  _.response <$> Affjax.get iconUrl
+    (mappingResp :: A.Json) <- _.response <$> Affjax.get json iconUrl
     (icons :: Array IconEntry) <- either (throwError <<< error) pure $ A.decodeJson mappingResp
-    pure $ foldl (\mapping icon -> StrMap.insert (makeLabel icon) (makeEntry icon) mapping) StrMap.empty icons
+    pure $ foldl (\mapping icon -> Object.insert (makeLabel icon) (makeEntry icon) mapping) Object.empty icons
   where
     makeLabel (IconEntry icon) = icon.label
     makeEntry (IconEntry icon) =
@@ -183,14 +179,17 @@ type MeteoriteState =
   }
 
 iconLayerClass :: R.ReactClass MeteoriteProps
-iconLayerClass = R.createClass iconLayerSpec
-
-iconLayerSpec :: forall eff . R.ReactSpec MeteoriteProps MeteoriteState R.ReactElement eff
-iconLayerSpec = (R.spec' getInitialState render) {componentWillReceiveProps = receiveProps}
+iconLayerClass = R.component "IconLayer" \this -> do
+  props <- R.getProps this
+  pure
+    { unsafeComponentWillReceiveProps: componentWillReceiveProps this
+    , render: render this
+    , state: updateCluster props
+    }
   where
     render this = do
       props <- R.getProps this
-      state <- R.readState this
+      state <- R.getState this
       let vp = unwrap props.viewport
           meteoriteDate = flip map $ \m -> {meteorite: m}
           iconLayer = Icon.makeIconLayer $
@@ -201,6 +200,7 @@ iconLayerSpec = (R.spec' getInitialState render) {componentWillReceiveProps = re
                                                 , visible = true
                                                 , iconAtlas = props.iconAtlas
                                                 , iconMapping = props.iconMapping
+                                                , opacity = 1.0
                                                 , sizeScale = 2.0 * iconSize
                                                 , getPosition = \{meteorite} -> meteoriteLngLat meteorite
                                                 , getIcon = \{meteorite} ->
@@ -212,22 +212,12 @@ iconLayerSpec = (R.spec' getInitialState render) {componentWillReceiveProps = re
 
                                                 })
       pure
-        $ R.createFactory DeckGL.deckGL
-        $ build (merge vp) 
-            { layers: [iconLayer]
-            , onLayerClick: DeckGL.defaultDeckGLProps.onLayerClick
-            , onLayerHover: DeckGL.defaultDeckGLProps.onLayerHover
-            }
-
-    getInitialState ::  R.GetInitialState MeteoriteProps MeteoriteState eff
-    getInitialState this = do
-      props <- R.getProps this
-      let updatedCluster = updateCluster props
-      pure $ updatedCluster
+        $ R.createLeafElement DeckGL.deckGL
+        $ vp `merge` DeckGL.defaultDeckGLProps {layers = [iconLayer]}
 
 
-    receiveProps :: R.ComponentWillReceiveProps MeteoriteProps MeteoriteState eff
-    receiveProps this newProps = do
+    componentWillReceiveProps :: R.ReactThis MeteoriteProps MeteoriteState -> R.ComponentWillReceiveProps MeteoriteProps
+    componentWillReceiveProps this newProps = do
       currentProps <- R.getProps this
       if map meteoriteId newProps.data /= map meteoriteId currentProps.data || currentProps.discreteZoom /= newProps.discreteZoom
         then let newZL = updateCluster newProps
@@ -341,14 +331,14 @@ meteoriteLngLat (Meteorite m) = LngLat.make $ unsafePartial fromJust $
     <*> m.coordinates !! 1
 
 -- | Fetch the meteorite data from the data directory.
-getMeteoriteData :: forall e . Aff (ajax :: AJAX | e) (Array Meteorite)
+getMeteoriteData :: Aff (Array Meteorite)
 getMeteoriteData = do
   let req = Affjax.defaultRequest { url = meteoritesUrl
                                   , headers = [ RequestHeader "Access-Control-Allow-Origin" "*"
                                               , RequestHeader "Contenty-Type" "application/json"
                                               ]
                                   }
-  (meteorResp :: A.Json) <-  _.response <$> Affjax.affjax req
+  (meteorResp :: A.Json) <-  _.response <$> Affjax.affjax json req
   either (throwError <<< error) pure $ A.decodeJson meteorResp
 
 --------------------------------------------------------------------------------

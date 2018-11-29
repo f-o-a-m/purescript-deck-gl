@@ -3,10 +3,10 @@ module DeckGL.Layer.Icon where
 import DeckGL (Layer)
 import DeckGL.BaseProps (BaseProps)
 import WebMercator.LngLat (LngLat)
-import Data.StrMap
+import Foreign.Object (Object)
 
-foreign import defaultIconProps :: forall d eff . IconLayerProps d eff
-foreign import makeIconLayer :: forall d eff . IconLayerProps d eff -> Layer
+foreign import defaultIconProps :: forall d . IconLayerProps d
+foreign import makeIconLayer :: forall d . IconLayerProps d -> Layer
 
 -- | An `Icon` represents a datapoint in a layer. The image for the icon is called an
 -- | "atlas", and the location and dimension of the icon in the atlas are given by
@@ -22,15 +22,14 @@ type Icon =
   , mask :: Boolean
   }
 
-type IconMapping = StrMap Icon
+type IconMapping = Object Icon
 
 type IconData d = {| d}
 
 -- | - `iconAtlas`: The url of the image for the icon atlas.
 -- | - `iconMapping`: A mapping of icon names to `Icon`s.
 -- | - `sizeScale`: Icon size multiplier.
-type IconLayerProps d eff = BaseProps
-  eff
+type IconLayerProps d = BaseProps
   ( iconAtlas :: String
   , iconMapping :: IconMapping
   , sizeScale :: Number

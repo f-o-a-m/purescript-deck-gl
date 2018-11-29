@@ -2,7 +2,6 @@
   "private": true,
   "scripts": {
     "build": "pulp build",
-    "postinstall": "bower i",
     "example-icon": "pulp browserify --include examples/icon/src --to examples/icon/dist/bundle.js"
   },
   "dependencies": {
@@ -11,8 +10,9 @@
   },
   "devDependencies": {
     "bower": "^1.8.2",
-    "pulp": "^12.0.1",
-    "purescript": "^0.11.7",
+    "purescript": "^0.12.0",
+    "pulp": "^12.2.0",
+    "purescript-psa": "^0.6.0",
     "create-react-class": "^15.6.3",
     "rbush": "^2.0.1",
     "react-dom": "^16.0.0",

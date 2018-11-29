@@ -4,9 +4,9 @@ import DeckGL (Layer)
 import DeckGL.BaseProps (BaseProps, LightSettings)
 import WebMercator.LngLat (LngLat)
 
-foreign import defaultHexagonProps :: forall eff . HexagonLayerProps eff
+foreign import defaultHexagonProps :: HexagonLayerProps
 
-foreign import makeHexagonLayer :: forall eff . HexagonLayerProps eff -> Layer
+foreign import makeHexagonLayer :: HexagonLayerProps -> Layer
 
 type HexData =
   { position :: Array LngLat
@@ -23,15 +23,14 @@ type HexData =
 -- | in each cell. If set to false, all cells will be flat.
 -- | `radius`: Radius of hexagons measured in meters.
 
-type HexagonLayerProps eff = BaseProps
-    eff
-    ( coverage :: Int
-    , colorRange :: Array (Array Int)
-    , elevationRange :: Array Int
-    , elevationScale :: Int
-    , extruded :: Boolean
-    , lightSettings :: LightSettings
-    , radius :: Int
-    , upperPercentile :: Int
-    )
-    HexData
+type HexagonLayerProps = BaseProps
+  ( coverage :: Int
+  , colorRange :: Array (Array Int)
+  , elevationRange :: Array Int
+  , elevationScale :: Int
+  , extruded :: Boolean
+  , lightSettings :: LightSettings
+  , radius :: Int
+  , upperPercentile :: Int
+  )
+  HexData

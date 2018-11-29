@@ -4,8 +4,8 @@ import DeckGL (Layer)
 import DeckGL.BaseProps (BaseProps)
 import WebMercator.LngLat (LngLat)
 
-foreign import defaultScreenGridProps :: forall eff . ScreenGridLayerProps eff
-foreign import makeScreenGridLayer :: forall eff . ScreenGridLayerProps eff -> Layer
+foreign import defaultScreenGridProps :: ScreenGridLayerProps
+foreign import makeScreenGridLayer :: ScreenGridLayerProps -> Layer
 
 type ScreenGridData =
   { position :: LngLat
@@ -15,10 +15,9 @@ type ScreenGridData =
 -- | - `cellSizePixels`: Unit width/height of the bins.
 -- | - `mincolor`: RGBA array, minimal color that can be rendered by a tile.
 -- | - `maxcolor`: RGBA array, maximal color that can be rendered by a tile.
-type ScreenGridLayerProps eff = BaseProps
-    eff
-    ( cellSizePixels :: Int
-    , minColor :: Array Int
-    , maxColor :: Array Int
-    )
-    ScreenGridData
+type ScreenGridLayerProps = BaseProps
+  ( cellSizePixels :: Int
+  , minColor :: Array Int
+  , maxColor :: Array Int
+  )
+  ScreenGridData

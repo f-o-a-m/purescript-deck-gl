@@ -2,8 +2,8 @@ module DeckGL where
 
 import Prelude
 
-import Control.Monad.Eff.Uncurried (EffFn3)
-import Data.Foreign (Foreign)
+import Effect.Uncurried (EffectFn3)
+import Foreign (Foreign)
 import Data.Nullable (Nullable)
 import React (ReactClass)
 import Unsafe.Coerce (unsafeCoerce)
@@ -32,16 +32,16 @@ pixel :: LayerInfo -> Pixel
 pixel = unsafeCoerce >>> _.pixel
 
 
-foreign import defaultDeckGLProps :: forall eff. DeckGLProps eff
+foreign import defaultDeckGLProps :: DeckGLProps
 
-type MapPropsR eff r =
+type MapPropsR r =
   ( layers :: Array Layer
-  , onLayerClick :: EffFn3 eff (Nullable LayerInfo) (Array LayerInfo) MouseEvent Unit
-  , onLayerHover :: EffFn3 eff (Nullable LayerInfo) (Array LayerInfo) MouseEvent Unit
+  , onLayerClick :: EffectFn3 (Nullable LayerInfo) (Array LayerInfo) MouseEvent Unit
+  , onLayerHover :: EffectFn3 (Nullable LayerInfo) (Array LayerInfo) MouseEvent Unit
   | r
   )
 
-type DeckGLProps eff = Record (MapPropsR eff (ViewportR ()))
+type DeckGLProps = Record (MapPropsR (ViewportR ()))
 
-foreign import deckGL :: forall eff. ReactClass (DeckGLProps eff)
+foreign import deckGL :: ReactClass (DeckGLProps)
 

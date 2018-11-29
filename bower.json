@@ -7,24 +7,25 @@
     "output"
   ],
   "dependencies": {
-    "purescript-prelude": "^3.1.1",
-    "purescript-react": "^v5.1.0",
-    "purescript-maps": "^3.6.0",
-    "purescript-web-mercator": "f-o-a-m/purescript-web-mercator#0.1.1"
+    "purescript-prelude": "^4.0.0",
+    "purescript-react": "^6.0.0",
+    "purescript-ordered-collections": "^1.0.0",
+    "purescript-foreign-object": "^1.0.0",
+    "purescript-foreign": "^5.0.0",
+    "purescript-web-mercator": "f-o-a-m/purescript-web-mercator#0.2.0"
   },
   "devDependencies": {
-    "purescript-dom": "^4.15.0",
-    "purescript-record": "^0.2.6",
-    "purescript-react-dom": "^5.0.0",
-    "purescript-transformers": "^3.5.0",
-    "purescript-argonaut-generic-codecs": "^6.0.4",
-    "purescript-debug": "^3.0.0",
-    "purescript-aff": "^4.0.2",
-    "purescript-affjax": "^5.0.0",
-    "purescript-argonaut-core": "^3.1.1",
-    "purescript-sets": "^3.1.0",
-    "purescript-argonaut": "^3.1.0",
-    "purescript-react-map-gl": "f-o-a-m/purescript-react-map-gl#0.3.1",
-    "purescript-psci-support": "^3.0.0"
+    "purescript-web-dom": "^1.0.0",
+    "purescript-web-html": "^1.0.0",
+    "purescript-record": "^1.0.0",
+    "purescript-react-dom": "^6.0.0",
+    "purescript-transformers": "^4.0.0",
+    "purescript-debug": "^4.0.0",
+    "purescript-aff": "^5.0.0",
+    "purescript-affjax": "^6.0.0",
+    "purescript-argonaut-core": "^4.0.0",
+    "purescript-argonaut": "^4.0.0",
+    "purescript-react-map-gl": "f-o-a-m/purescript-react-map-gl#0.4.0",
+    "purescript-psci-support": "^4.0.0"
   }
 }
