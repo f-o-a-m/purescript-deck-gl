@@ -5,17 +5,17 @@
     "example-icon": "pulp browserify --include examples/icon/src --to examples/icon/dist/bundle.js"
   },
   "dependencies": {
-    "react": "^16.0.0",
+    "react": "^16.3.0",
     "deck.gl": "^5.1.1"
   },
   "devDependencies": {
     "bower": "^1.8.2",
-    "purescript": "^0.12.0",
-    "pulp": "^12.2.0",
+    "purescript": "^0.13.0",
+    "pulp": "^15.0.0",
     "purescript-psa": "^0.6.0",
     "create-react-class": "^15.6.3",
     "rbush": "^2.0.1",
     "react-dom": "^16.0.0",
-    "react-map-gl": "^3.2.1"
+    "react-map-gl": "^5.2.0"
   }
 }
