@@ -4,19 +4,22 @@ import DeckGL (Layer)
 import DeckGL.BaseProps (BaseProps)
 import WebMercator.LngLat (LngLat)
 
-foreign import defaultScatterplotProps :: ScatterplotLayerProps
-foreign import makeScatterplotLayer :: ScatterplotLayerProps -> Layer
+foreign import defaultScatterplotProps :: forall d. ScatterplotLayerProps d
+foreign import makeScatterplotLayer :: forall d. ScatterplotLayerProps d -> Layer
 
-type ScatterplotData =
-  { position :: LngLat
-  , radius :: Number
-  , color :: Array Int
-  }
+type ScatterplotData d = {|d}
 
 -- | - `outline`: Only draw the outline of the points
 -- | - `fp64`: Whether the layer should be rendered in high-precision 64-bit mode.
-type ScatterplotLayerProps = BaseProps
-  ( fp64 :: Boolean
-  , outline :: Boolean
+type ScatterplotLayerProps d = BaseProps
+  ( getPosition :: ScatterplotData d -> LngLat
+  , getRadius :: Number
+  , getFillColor :: Array Int
+  , getLineColor :: Array Int
+  , getLineWidth :: Array Int
+  , stroked :: Boolean
+  , filled :: Boolean
+  , radiusMinPixels :: Int
+  , lineWidthMinPixels :: Int
   )
-  ScatterplotData
+  (ScatterplotData d)
