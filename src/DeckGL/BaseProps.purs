@@ -12,7 +12,7 @@ import Effect.Uncurried (EffectFn1)
 -- | - `object`: The object that was picked, typically in the layer's `props.data` array, but can vary.
 -- | - `x`: Mouse position `x` relative to the viewport.
 -- | - `y`: Mouse position `y` relative to the viewport.
--- | - `lnglat`: Mouse position in geospatial coordinates. Only applies if layer.props.coordinateSystem
+-- | - `coordinate`: Mouse position in geospatial coordinates. Only applies if layer.props.coordinateSystem
 -- |   is a geospatial mode such as `COORDINATE_SYSTEM.LNGLAT`
 type PickingInfo a =
   { layer :: Layer
@@ -20,19 +20,10 @@ type PickingInfo a =
   , object :: a
   , x :: Int
   , y :: Int
-  , lngLat :: LngLat
+  , coordinate :: LngLat
   }
 
 -- | Some layers require light settings to customize the rendering.
-type LightSettings =
-  { lightsPosition :: Array Number
-  , ambientRatio :: Number
-  , diffuseRatio :: Number
-  , specularRatio :: Number
-  , lightsStrength :: Array Number
-  , numberOfLights :: Int
-  }
-
 -- | `BaseProps rest a` are basic properties that all layers share. There are
 -- | many properties, but they all have sensible defaults in the library should you choose
 -- | not to set them. See https://github.com/uber/deck.gl/blob/master/docs/api-reference/layer.md.
@@ -54,7 +45,6 @@ type BaseProps rest a =
   , visible :: Boolean
   , opacity :: Number
   , pickable :: Boolean
-  , fp64 :: Boolean
   , onHover :: EffectFn1 (PickingInfo a) Boolean
   , onClick :: EffectFn1 (PickingInfo a) Boolean
   , autoHighlight :: Boolean

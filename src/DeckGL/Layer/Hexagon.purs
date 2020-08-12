@@ -33,5 +33,6 @@ type HexagonLayerProps d = BaseProps
   , colorRange :: Array (Array Int)
   , extruded :: Boolean
   , radius :: Int
+  , material ::Boolean
   )
   (HexData d)

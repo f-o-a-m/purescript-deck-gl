@@ -18,5 +18,6 @@ type PolygonLayerProps d = BaseProps
   , filled :: Boolean
   , extruded :: Boolean
   , lineWidthMinPixels :: Int
+  , material :: Boolean
   )
   (PolygonData d)

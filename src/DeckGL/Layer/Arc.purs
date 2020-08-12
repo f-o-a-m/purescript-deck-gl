@@ -4,19 +4,20 @@ import DeckGL (Layer)
 import DeckGL.BaseProps (BaseProps)
 import WebMercator.LngLat (LngLat)
 
-foreign import defaultArcProps :: ArcLayerProps
-foreign import makeArcLayer :: ArcLayerProps -> Layer
+foreign import defaultArcProps :: forall d. ArcLayerProps d
+foreign import makeArcLayer :: forall d. ArcLayerProps d -> Layer
 
-type ArcData =
-  { sourcePosition :: LngLat
-  , targetPosition :: LngLat
-  , color :: Array Int
-  }
+type ArcData d = {|d}
 
--- | - `strokeWidth`: used to draw each arc. Unit is pixels.
--- | - `fp64`: Whether the layer should be rendered in high-precision 64-bit mode
-type ArcLayerProps = BaseProps
-  ( strokeWidth :: Int
-  , fp64 :: Boolean
+type ArcLayerProps d = BaseProps
+  ( getSourcePosition :: ArcData d -> LngLat
+  , getSourceColor :: Array Int
+  , getTargetPosition :: ArcData d -> LngLat
+  , getTargetColor :: Array Int
+  , strokeWidth :: Int
+  , getWidth :: Int
+  , getHeight :: Int
+  , getTilt :: Int
+  , widthMinPixels :: Int 
   )
-  ArcData
+  (ArcData d)
