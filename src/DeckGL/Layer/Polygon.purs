@@ -4,21 +4,19 @@ import DeckGL (Layer)
 import DeckGL.BaseProps (BaseProps)
 import WebMercator.LngLat (LngLat)
 
-foreign import defaultPolygonProps :: PolygonLayerProps
+foreign import defaultPolygonProps :: forall d. PolygonLayerProps d
+foreign import makePolygonLayer :: forall d. PolygonLayerProps d -> Layer
 
-foreign import makePolygonLayer :: PolygonLayerProps -> Layer
+type PolygonData d = {|d}
 
-type PolygonData =
-  { polygon :: Array LngLat
-  , fillColor :: Array Int
-  , strokeColor :: Array Int
-  , strokeWidth :: Int
-  , color :: Array Int
-  }
-
-type PolygonLayerProps = BaseProps
-  ( stroked :: Boolean
+type PolygonLayerProps d = BaseProps
+  ( getPolygon :: PolygonData d -> Array LngLat
+  , getFillColor :: PolygonData d -> Array Int
+  , getElevation :: PolygonData d -> Int
+  , getLineWidth :: PolygonData d -> Int
+  , getLineColor :: PolygonData d -> Array Int
+  , filled :: Boolean
+  , extruded :: Boolean
   , lineWidthMinPixels :: Int
-  , fp64 :: Boolean
   )
-  PolygonData
+  (PolygonData d)

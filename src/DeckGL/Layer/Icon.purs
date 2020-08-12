@@ -16,10 +16,15 @@ foreign import makeIconLayer :: forall d . IconLayerProps d -> Layer
 -- | otherwise the color from the image is applied.
 type Icon =
   { x :: Int
+  -- ^  x position of icon on the atlas image
   , y :: Int
+  -- ^  y position of icon on the atlas image
   , width :: Int
+  -- ^ width of icon on the atlas image
   , height :: Int
+  -- ^ height of icon on the atlas image
   , mask :: Boolean
+  -- ^ whether icon is treated as a transparency
   }
 
 type IconMapping = Object Icon
@@ -37,5 +42,6 @@ type IconLayerProps d = BaseProps
   , getSize :: IconData d -> Number
   , getIcon :: IconData d -> String
   , getColor :: IconData d -> Array Number
+  , getAngle :: IconData d -> Number
   )
   (IconData d)
