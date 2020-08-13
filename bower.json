@@ -9,6 +9,7 @@
   "dependencies": {
     "purescript-prelude": "^4.1.1",
     "purescript-react": "^7.0.0",
+    "purescript-foreign": "^5.0.0",
     "purescript-foreign-object": "^2.0.3",
     "purescript-web-mercator": "f-o-a-m/purescript-web-mercator#v0.3.0"
   },

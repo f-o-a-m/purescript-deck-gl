@@ -32,7 +32,7 @@ import Partial.Unsafe (unsafePartial)
 import RBush as RBush
 import React as R
 import ReactDOM (render)
-import Record (disjointUnion, merge)
+import Record (merge)
 import Web.DOM (Element)
 import Web.DOM.NonElementParentNode (getElementById)
 import Web.HTML (window)
