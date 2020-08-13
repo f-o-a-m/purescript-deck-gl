@@ -2,12 +2,15 @@ module Main where
 
 import Prelude
 
+import Affjax (defaultRequest, get, printError, request) as Affjax
+import Affjax.RequestHeader (RequestHeader(..))
+import Affjax.ResponseFormat (json)
 import Control.Monad.Error.Class (throwError)
 import Control.Monad.Reader (ReaderT, runReaderT, ask)
 import Control.Monad.State (execState, State, modify, get)
 import Data.Argonaut as A
 import Data.Array ((!!), length, filter, foldl)
-import Data.Either (either)
+import Data.Either (Either(..), either)
 import Data.Int (floor, toNumber)
 import Data.Map as Map
 import Data.Maybe (fromJust, fromMaybe)
@@ -25,9 +28,6 @@ import Effect.Uncurried (mkEffectFn1)
 import Foreign.Object as Object
 import MapGL as MapGL
 import Math (pow)
-import Network.HTTP.Affjax (affjax, defaultRequest, get) as Affjax
-import Network.HTTP.Affjax.Response (json)
-import Network.HTTP.RequestHeader (RequestHeader(..))
 import Partial.Unsafe (unsafePartial)
 import RBush as RBush
 import React as R
@@ -82,16 +82,21 @@ mapClass = R.component "Map" \this -> do
       state <- R.getState this
       let viewport@(MapGL.Viewport vp) = state.viewport
           relevantMeteorites = getMeteoritesInBoundingBox vp state.data
-          mapProps = vp `disjointUnion`
+          mapProps = MapGL.mkProps viewport $
             { onViewportChange: mkEffectFn1 \newVp -> void $ R.modifyState this _{viewport = newVp}
             , onClick: mkEffectFn1 (const $ pure unit)
             , mapStyle: mapStyle
             , mapboxApiAccessToken: mapboxApiAccessToken
+            , dragRotate: false
+            , onLoad: mempty
+            , touchZoomRotate: false
             }
-          overlayProps = { viewport, data: relevantMeteorites
+          overlayProps = { viewport
+                         , data: relevantMeteorites
                          , iconMapping: state.iconMapping
                          , iconAtlas: state.iconAtlas
                          , discreteZoom: floor vp.zoom
+
                          }
       pure $ R.createElement MapGL.mapGL mapProps [R.createLeafElement iconLayerClass overlayProps]
 
@@ -135,12 +140,12 @@ newtype IconEntry =
 instance decodeJsonIconEntry :: A.DecodeJson IconEntry where
   decodeJson json = do
     obj <- A.decodeJson json
-    label <- obj A..? "label"
-    x <- obj A..? "x"
-    y <- obj A..? "y"
-    width <- obj A..? "width"
-    height <- obj A..? "height"
-    anchorY <- obj A..? "anchorY"
+    label <- obj A..: "label"
+    x <- obj A..: "x"
+    y <- obj A..: "y"
+    width <- obj A..: "width"
+    height <- obj A..: "height"
+    anchorY <- obj A..: "anchorY"
     pure $ IconEntry {label, x, y, width, height, anchorY}
 
 -- | Make a request to the data directory to make the `IconMapping`, which is just a mapping
@@ -148,9 +153,11 @@ instance decodeJsonIconEntry :: A.DecodeJson IconEntry where
 -- | right icon.
 buildIconMapping :: Aff Icon.IconMapping
 buildIconMapping = do
-    (mappingResp :: A.Json) <- _.response <$> Affjax.get json iconUrl
-    (icons :: Array IconEntry) <- either (throwError <<< error) pure $ A.decodeJson mappingResp
-    pure $ foldl (\mapping icon -> Object.insert (makeLabel icon) (makeEntry icon) mapping) Object.empty icons
+  resp <- Affjax.get json iconUrl
+  (icons :: Array IconEntry) <- case resp of
+    Left e -> throwError $ error $ Affjax.printError e
+    Right {body} -> either (throwError <<< error <<< show) pure $ A.decodeJson body
+  pure $ foldl (\mapping icon -> Object.insert (makeLabel icon) (makeEntry icon) mapping) Object.empty icons
   where
     makeLabel (IconEntry icon) = icon.label
     makeEntry (IconEntry icon) =
@@ -309,13 +316,16 @@ newtype Meteorite =
 derive instance newtypeMeteorite :: Newtype Meteorite _
 
 instance decodeJsonMeteorite :: A.DecodeJson Meteorite where
+
+
+
   decodeJson json = do
     obj <- A.decodeJson json
-    _class <- obj A..? "class"
-    coordinates <- obj A..? "coordinates"
-    mass <- obj A..? "mass"
-    name <- obj A..? "name"
-    year <- obj A..? "year"
+    _class <- obj A..: "class"
+    coordinates <- obj A..: "coordinates"
+    mass <- obj A..: "mass"
+    name <- obj A..: "name"
+    year <- obj A..: "year"
     pure $ Meteorite {class: _class, coordinates, mass, name, year}
 
 -- | meteoriteId is effectively a hash of a meteorite.
@@ -337,9 +347,12 @@ getMeteoriteData = do
                                   , headers = [ RequestHeader "Access-Control-Allow-Origin" "*"
                                               , RequestHeader "Contenty-Type" "application/json"
                                               ]
+                                  , responseFormat = json
                                   }
-  (meteorResp :: A.Json) <-  _.response <$> Affjax.affjax json req
-  either (throwError <<< error) pure $ A.decodeJson meteorResp
+  resp <- Affjax.request req
+  case resp of
+    Left e -> throwError <<< error $ Affjax.printError e
+    Right {body} -> either (throwError <<< error <<< show) pure $ A.decodeJson body
 
 --------------------------------------------------------------------------------
 -- | Utils and Config
