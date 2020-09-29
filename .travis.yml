@@ -3,16 +3,16 @@ dist: trusty
 sudo: required
 node_js: stable
 install:
-  - npm i
-  - bower i --production
+  - npm install -g spago purescript
+  - npm install
+  - spago install
 script:
   - npm run build
-  - bower i
-  - npm run -s example-icon
+  - npm run example-icon:build
 deploy:
   provider: pages
   skip_cleanup: true
   github_token: $GITHUB_TOKEN # Set in travis-ci.org dashboard
-  local_dir: examples/icon/dist
+  local_dir: example/signal-halogen/dist
   on:
     branch: master
