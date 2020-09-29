@@ -14,9 +14,7 @@ type ArcData =
   }
 
 -- | - `strokeWidth`: used to draw each arc. Unit is pixels.
--- | - `fp64`: Whether the layer should be rendered in high-precision 64-bit mode
 type ArcLayerProps = BaseProps
   ( strokeWidth :: Int
-  , fp64 :: Boolean
   )
   ArcData

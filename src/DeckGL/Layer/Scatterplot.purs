@@ -14,9 +14,7 @@ type ScatterplotData =
   }
 
 -- | - `outline`: Only draw the outline of the points
--- | - `fp64`: Whether the layer should be rendered in high-precision 64-bit mode.
 type ScatterplotLayerProps = BaseProps
-  ( fp64 :: Boolean
-  , outline :: Boolean
+  ( outline :: Boolean
   )
   ScatterplotData

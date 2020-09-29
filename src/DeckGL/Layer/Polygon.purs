@@ -19,6 +19,5 @@ type PolygonData =
 type PolygonLayerProps = BaseProps
   ( stroked :: Boolean
   , lineWidthMinPixels :: Int
-  , fp64 :: Boolean
   )
   PolygonData
