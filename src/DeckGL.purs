@@ -38,10 +38,11 @@ type MapPropsR r =
   ( layers :: Array Layer
   , onClick :: EffectFn2 (Nullable LayerInfo) MouseEvent Unit
   , onHover :: EffectFn2 (Nullable LayerInfo) MouseEvent Unit
+  , viewState :: Record (ViewportR ())
   | r
   )
 
-type DeckGLProps = Record (MapPropsR (ViewportR ()))
+type DeckGLProps = Record (MapPropsR ())
 
 foreign import deckGL :: ReactClass (DeckGLProps)
 

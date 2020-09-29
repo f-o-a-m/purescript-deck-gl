@@ -2,17 +2,21 @@
   "private": true,
   "scripts": {
     "build": "spago build",
-    "example-icon": "spago bundle-app --path examples/icon/src/**/*.purs --to examples/icon/dist/bundle-tmp.js && browserify examples/icon/dist/bundle-tmp.js > examples/icon/dist/bundle.js && rm -f examples/icon/dist/bundle-tmp.js",
-    "example-icon:serve": "serve examples/icon/dist"
+    "//": "",
+    "examples-icon": "yarn examples-icon:bundle-app && yarn examples-icon:browserify",
+    "examples-icon:bundle-app": "spago --config examples-icon-spago.dhall bundle-app --to examples/icon/dist/bundle.js",
+    "examples-icon:browserify": "browserify examples/icon/dist/bundle.js -o examples/icon/dist/bundle.js",
+    "examples-icon:serve": "serve examples/icon/dist"
   },
   "dependencies": {
-    "react": "^16.13.1",
-    "deck.gl": "^8.2.8"
+    "deck.gl": "^8.2.8",
+    "react": "^16.13.1"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",
     "babel-runtime": "^6.26.0",
     "bower": "^1.8.8",
+    "browserify": "^16.5.2",
     "create-react-class": "^15.6.3",
     "pulp": "^15.0.0",
     "purescript-psa": "^0.7.3",
