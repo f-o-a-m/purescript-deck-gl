@@ -1,8 +1,9 @@
 {
   "private": true,
   "scripts": {
-    "build": "pulp build",
-    "example-icon": "pulp browserify --include examples/icon/src --to examples/icon/dist/bundle.js"
+    "build": "spago build",
+    "example-icon": "spago bundle-app --path examples/icon/src/**/*.purs --to examples/icon/dist/bundle-tmp.js && browserify examples/icon/dist/bundle-tmp.js > examples/icon/dist/bundle.js && rm -f examples/icon/dist/bundle-tmp.js"
+    "example-icon:serve": "serve examples/icon/dist"
   },
   "dependencies": {
     "react": "^16.3.0",
@@ -14,7 +15,6 @@
     "bower": "^1.8.2",
     "create-react-class": "^15.6.3",
     "pulp": "^15.0.0",
-    "purescript": "^0.13.0",
     "purescript-psa": "^0.6.0",
     "rbush": "^2.0.1",
     "react-dom": "^16.0.0",
