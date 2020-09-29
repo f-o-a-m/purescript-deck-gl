@@ -8,7 +8,7 @@ install:
   - spago install
 script:
   - npm run build
-  - npm run examples-icon:build
+  - npm run examples-icon
 deploy:
   provider: pages
   skip_cleanup: true
