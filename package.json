@@ -2,7 +2,7 @@
   "private": true,
   "scripts": {
     "build": "spago build",
-    "example-icon": "spago bundle-app --path examples/icon/src/**/*.purs --to examples/icon/dist/bundle-tmp.js && browserify examples/icon/dist/bundle-tmp.js > examples/icon/dist/bundle.js && rm -f examples/icon/dist/bundle-tmp.js"
+    "example-icon": "spago bundle-app --path examples/icon/src/**/*.purs --to examples/icon/dist/bundle-tmp.js && browserify examples/icon/dist/bundle-tmp.js > examples/icon/dist/bundle.js && rm -f examples/icon/dist/bundle-tmp.js",
     "example-icon:serve": "serve examples/icon/dist"
   },
   "dependencies": {

@@ -9,3 +9,5 @@ package-lock.json
 /.purs*
 /.psa*
 /.spago
+/examples/icon/dist/bundle-tmp.js
+yarn-error.log

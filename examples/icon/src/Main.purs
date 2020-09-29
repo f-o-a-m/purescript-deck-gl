@@ -89,7 +89,8 @@ mapClass = R.component "Map" \this -> do
             , mapboxApiAccessToken: mapboxApiAccessToken
             , dragRotate: false
             , onLoad: mempty
-            , touchZoomRotate: false
+            , touchZoom: false
+            , touchRotate: false
             }
           overlayProps = { viewport
                          , data: relevantMeteorites
@@ -335,7 +336,7 @@ meteoriteId (Meteorite m) =
 
 -- | Convert the coordinates of a meteorite into LngLat
 meteoriteLngLat :: Meteorite -> LngLat
-meteoriteLngLat (Meteorite m) = LngLat.make $ unsafePartial fromJust $ 
+meteoriteLngLat (Meteorite m) = LngLat.make $ unsafePartial fromJust $
   {lng: _, lat: _}
     <$> m.coordinates !! 0
     <*> m.coordinates !! 1
