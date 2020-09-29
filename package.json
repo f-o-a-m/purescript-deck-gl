@@ -6,18 +6,18 @@
     "example-icon:serve": "serve examples/icon/dist"
   },
   "dependencies": {
-    "react": "^16.3.0",
-    "deck.gl": "^5.1.1"
+    "react": "^16.13.1",
+    "deck.gl": "^8.2.8"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",
     "babel-runtime": "^6.26.0",
-    "bower": "^1.8.2",
+    "bower": "^1.8.8",
     "create-react-class": "^15.6.3",
     "pulp": "^15.0.0",
-    "purescript-psa": "^0.6.0",
-    "rbush": "^2.0.1",
-    "react-dom": "^16.0.0",
-    "react-map-gl": "^5.2.0"
+    "purescript-psa": "^0.7.3",
+    "rbush": "^3.0.1",
+    "react-dom": "^16.13.1",
+    "react-map-gl": "^5.2.8"
   }
 }
