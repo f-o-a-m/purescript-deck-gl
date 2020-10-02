@@ -10,3 +10,4 @@ package-lock.json
 /.psa*
 /.spago
 yarn-error.log
+yarn.lock

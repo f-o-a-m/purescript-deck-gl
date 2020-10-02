@@ -13,7 +13,7 @@ let additions =
           , "generics-rep"
           ]
       , repo =
-          "https://github.com/srghma/purescript-react-map-gl.git"
+          "https://github.com/f-o-a-m/purescript-react-map-gl.git"
       , version =
           "master"
       }
