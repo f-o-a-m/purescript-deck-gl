@@ -1,23 +1,28 @@
 {
   "private": true,
   "scripts": {
-    "build": "pulp build",
-    "example-icon": "pulp browserify --include examples/icon/src --to examples/icon/dist/bundle.js"
+    "build": "spago build",
+    "//": "",
+    "examples-icon": "yarn examples-icon:bundle-app && yarn examples-icon:browserify",
+    "examples-icon:build": "spago --config examples-icon-spago.dhall build",
+    "examples-icon:bundle-app": "spago --config examples-icon-spago.dhall bundle-app --to examples/icon/dist/bundle.js",
+    "examples-icon:browserify": "browserify examples/icon/dist/bundle.js -o examples/icon/dist/bundle.js",
+    "examples-icon:serve": "serve examples/icon/dist"
   },
   "dependencies": {
-    "react": "^16.3.0",
-    "deck.gl": "^5.1.1"
+    "deck.gl": "^8.2.8",
+    "react": "^16.13.1"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",
     "babel-runtime": "^6.26.0",
-    "bower": "^1.8.2",
+    "bower": "^1.8.8",
+    "browserify": "^16.5.2",
     "create-react-class": "^15.6.3",
     "pulp": "^15.0.0",
-    "purescript": "^0.13.0",
-    "purescript-psa": "^0.6.0",
-    "rbush": "^2.0.1",
-    "react-dom": "^16.0.0",
-    "react-map-gl": "^5.2.0"
+    "purescript-psa": "^0.7.3",
+    "rbush": "^3.0.1",
+    "react-dom": "^16.13.1",
+    "react-map-gl": "^5.2.8"
   }
 }

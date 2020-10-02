@@ -3,12 +3,12 @@ dist: trusty
 sudo: required
 node_js: stable
 install:
-  - npm i
-  - bower i --production
+  - npm install -g spago purescript
+  - npm install
+  - spago install
 script:
   - npm run build
-  - bower i
-  - npm run -s example-icon
+  - npm run examples-icon
 deploy:
   provider: pages
   skip_cleanup: true

@@ -32,7 +32,6 @@ import Partial.Unsafe (unsafePartial)
 import RBush as RBush
 import React as R
 import ReactDOM (render)
-import Record (merge)
 import Web.DOM (Element)
 import Web.DOM.NonElementParentNode (getElementById)
 import Web.HTML (window)
@@ -68,6 +67,7 @@ mapClass = R.component "Map" \this -> do
       { iconMapping = iconMapping
       , data = meteorites
       }
+
   pure
     { render: render this
     , state:
@@ -82,21 +82,23 @@ mapClass = R.component "Map" \this -> do
       state <- R.getState this
       let viewport@(MapGL.Viewport vp) = state.viewport
           relevantMeteorites = getMeteoritesInBoundingBox vp state.data
+
           mapProps = MapGL.mkProps viewport $
-            { onViewportChange: mkEffectFn1 \newVp -> void $ R.modifyState this _{viewport = newVp}
+            { onViewportChange: mkEffectFn1 \newVp -> void $ R.modifyState this _ { viewport = newVp }
             , onClick: mkEffectFn1 (const $ pure unit)
             , mapStyle: mapStyle
             , mapboxApiAccessToken: mapboxApiAccessToken
             , dragRotate: false
             , onLoad: mempty
-            , touchZoomRotate: false
+            , touchZoom: false
+            , touchRotate: false
             }
+
           overlayProps = { viewport
                          , data: relevantMeteorites
                          , iconMapping: state.iconMapping
                          , iconAtlas: state.iconAtlas
                          , discreteZoom: floor vp.zoom
-
                          }
       pure $ R.createElement MapGL.mapGL mapProps [R.createLeafElement iconLayerClass overlayProps]
 
@@ -197,13 +199,12 @@ iconLayerClass = R.component "IconLayer" \this -> do
     render this = do
       props <- R.getProps this
       state <- R.getState this
+
       let vp = unwrap props.viewport
-          meteoriteDate = flip map $ \m -> {meteorite: m}
           iconLayer = Icon.makeIconLayer $
                         ( Icon.defaultIconProps { id = "icon"
-                                                , data = map (\m -> {meteorite : m}) props.data
+                                                , data = map (\m -> { meteorite: m }) props.data
                                                 , pickable = false
-                                                , fp64 = true
                                                 , visible = true
                                                 , iconAtlas = props.iconAtlas
                                                 , iconMapping = props.iconMapping
@@ -212,7 +213,7 @@ iconLayerClass = R.component "IconLayer" \this -> do
                                                 , getPosition = \{meteorite} -> meteoriteLngLat meteorite
                                                 , getIcon = \{meteorite} ->
                                                     let mId = meteoriteId meteorite
-                                                    in fromMaybe "marker" (_.icon <$> Map.lookup (Tuple mId props.discreteZoom) state.zoomLevels)
+                                                    in fromMaybe "marker" (_.icon <$> Map.lookup (Tuple mId props.discreteZoom) (state.zoomLevels))
                                                 , getSize = \{meteorite} ->
                                                     let mId = meteoriteId meteorite
                                                     in fromMaybe 1.0 (_.size <$> Map.lookup (Tuple mId props.discreteZoom) state.zoomLevels)
@@ -220,7 +221,7 @@ iconLayerClass = R.component "IconLayer" \this -> do
                                                 })
       pure
         $ R.createLeafElement DeckGL.deckGL
-        $ vp `merge` DeckGL.defaultDeckGLProps {layers = [iconLayer]}
+        $ DeckGL.defaultDeckGLProps { layers = [ iconLayer ], viewState = vp }
 
 
     componentWillReceiveProps :: R.ReactThis MeteoriteProps MeteoriteState -> R.ComponentWillReceiveProps MeteoriteProps
@@ -297,7 +298,7 @@ fillOutZoomLevels
   -> Int
   -> ZoomLevels
 fillOutZoomLevels nodes bush zoom  =
-  let initialState = {knownSet: S.empty, zoomLevels: Map.empty}
+  let initialState = { knownSet: S.empty, zoomLevels: Map.empty }
   in _.zoomLevels $ execState (runReaderT (fillOutZoomLevel nodes zoom) bush) initialState
 
 
@@ -335,7 +336,7 @@ meteoriteId (Meteorite m) =
 
 -- | Convert the coordinates of a meteorite into LngLat
 meteoriteLngLat :: Meteorite -> LngLat
-meteoriteLngLat (Meteorite m) = LngLat.make $ unsafePartial fromJust $ 
+meteoriteLngLat (Meteorite m) = LngLat.make $ unsafePartial fromJust $
   {lng: _, lat: _}
     <$> m.coordinates !! 0
     <*> m.coordinates !! 1

@@ -8,3 +8,6 @@ package-lock.json
 /.psc*
 /.purs*
 /.psa*
+/.spago
+yarn-error.log
+yarn.lock

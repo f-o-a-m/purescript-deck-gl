@@ -2,9 +2,9 @@ module DeckGL where
 
 import Prelude
 
-import Effect.Uncurried (EffectFn3)
-import Foreign (Foreign)
 import Data.Nullable (Nullable)
+import Effect.Uncurried (EffectFn2)
+import Foreign (Foreign)
 import React (ReactClass)
 import Unsafe.Coerce (unsafeCoerce)
 import WebMercator.LngLat (LngLat)
@@ -36,12 +36,13 @@ foreign import defaultDeckGLProps :: DeckGLProps
 
 type MapPropsR r =
   ( layers :: Array Layer
-  , onLayerClick :: EffectFn3 (Nullable LayerInfo) (Array LayerInfo) MouseEvent Unit
-  , onLayerHover :: EffectFn3 (Nullable LayerInfo) (Array LayerInfo) MouseEvent Unit
+  , onClick :: EffectFn2 (Nullable LayerInfo) MouseEvent Unit
+  , onHover :: EffectFn2 (Nullable LayerInfo) MouseEvent Unit
+  , viewState :: Record (ViewportR ())
   | r
   )
 
-type DeckGLProps = Record (MapPropsR (ViewportR ()))
+type DeckGLProps = Record (MapPropsR ())
 
 foreign import deckGL :: ReactClass (DeckGLProps)
 
