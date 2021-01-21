@@ -103,7 +103,7 @@ mapClass = R.component "Map" \this -> do
 
     getMeteoritesInBoundingBox :: Record (ViewportR ()) -> Array Meteorite -> Array Meteorite
     getMeteoritesInBoundingBox vp = filter
-      $ Viewport.isInBoundingBox (Viewport.boundingBox $ Viewport.pack vp) <<< LngLat.make <<< flattenLngLatZ <<< meteoriteLngLat
+      $ Viewport.isInBoundingBox (Viewport.boundingBox $ Viewport.pack vp) <<< LngLat.make <<< meteoriteLngLat
 
 type MapState =
   { viewport :: MapGL.Viewport
@@ -231,9 +231,6 @@ iconLayerClass = R.component "IconLayer" \this -> do
              in void $ R.writeState this newZL
         else pure unit
 
-flattenLngLatZ :: {lng :: Number, lat :: Number, z :: Number } -> {lng :: Number, lat :: Number}
-flattenLngLatZ l = {lng: l.lng, lat: l.lat}
-
 updateCluster :: MeteoriteProps -> {zoomLevels :: ZoomLevels}
 updateCluster props =
     let vp = unwrap props.viewport
@@ -241,7 +238,7 @@ updateCluster props =
         prj = Viewport.project $ Viewport.pack vpZoomedOut
         bush = RBush.empty 5
         screenData = flip map props.data $ \d ->
-          let sCoords = prj $ LngLat.make $ flattenLngLatZ $ meteoriteLngLat d
+          let sCoords = prj $ LngLat.make $ meteoriteLngLat d
           in { entry: d
              , x: Pixel.x sCoords
              , y: Pixel.y sCoords
@@ -303,7 +300,6 @@ fillOutZoomLevels nodes bush zoom  =
   let initialState = { knownSet: S.empty, zoomLevels: Map.empty }
   in _.zoomLevels $ execState (runReaderT (fillOutZoomLevel nodes zoom) bush) initialState
 
-
 --------------------------------------------------------------------------------
 -- | Meteorite
 --------------------------------------------------------------------------------
@@ -319,9 +315,6 @@ newtype Meteorite =
 derive instance newtypeMeteorite :: Newtype Meteorite _
 
 instance decodeJsonMeteorite :: A.DecodeJson Meteorite where
-
-
-
   decodeJson json = do
     obj <- A.decodeJson json
     _class <- obj A..: "class"
@@ -342,7 +335,7 @@ meteoriteLngLat (Meteorite m) = unsafePartial fromJust $
   {lng: _, lat: _, z: _}
     <$> m.coordinates !! 0
     <*> m.coordinates !! 1
-    <*> Just 0.0
+    <*> Just 1.0
 
 -- | Fetch the meteorite data from the data directory.
 getMeteoriteData :: Aff (Array Meteorite)
@@ -377,7 +370,6 @@ getIconSize size = (min 100.0 (toNumber size) / 50.0) + 0.5
 -- | The base icon size.
 iconSize :: Number
 iconSize = 60.0
-
 
 -- | data directory urls.
 meteoritesUrl :: String
