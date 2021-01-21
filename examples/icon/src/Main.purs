@@ -13,7 +13,7 @@ import Data.Array ((!!), length, filter, foldl)
 import Data.Either (Either(..), either)
 import Data.Int (floor, toNumber)
 import Data.Map as Map
-import Data.Maybe (fromJust, fromMaybe)
+import Data.Maybe (Maybe(..),fromJust, fromMaybe)
 import Data.Newtype (class Newtype, unwrap)
 import Data.Set as S
 import Data.Traversable (for_)
@@ -37,7 +37,6 @@ import Web.DOM.NonElementParentNode (getElementById)
 import Web.HTML (window)
 import Web.HTML.HTMLDocument as HTMLDocument
 import Web.HTML.Window as Window
-import WebMercator.LngLat (LngLat)
 import WebMercator.LngLat as LngLat
 import WebMercator.Pixel as Pixel
 import WebMercator.Viewport (ViewportR)
@@ -104,7 +103,7 @@ mapClass = R.component "Map" \this -> do
 
     getMeteoritesInBoundingBox :: Record (ViewportR ()) -> Array Meteorite -> Array Meteorite
     getMeteoritesInBoundingBox vp = filter
-      $ Viewport.isInBoundingBox (Viewport.boundingBox $ Viewport.pack vp) <<< meteoriteLngLat
+      $ Viewport.isInBoundingBox (Viewport.boundingBox $ Viewport.pack vp) <<< LngLat.make <<< flattenLngLatZ <<< meteoriteLngLat
 
 type MapState =
   { viewport :: MapGL.Viewport
@@ -232,6 +231,9 @@ iconLayerClass = R.component "IconLayer" \this -> do
              in void $ R.writeState this newZL
         else pure unit
 
+flattenLngLatZ :: {lng :: Number, lat :: Number, z :: Number } -> {lng :: Number, lat :: Number}
+flattenLngLatZ l = {lng: l.lng, lat: l.lat}
+
 updateCluster :: MeteoriteProps -> {zoomLevels :: ZoomLevels}
 updateCluster props =
     let vp = unwrap props.viewport
@@ -239,7 +241,7 @@ updateCluster props =
         prj = Viewport.project $ Viewport.pack vpZoomedOut
         bush = RBush.empty 5
         screenData = flip map props.data $ \d ->
-          let sCoords = prj $ meteoriteLngLat d
+          let sCoords = prj $ LngLat.make $ flattenLngLatZ $ meteoriteLngLat d
           in { entry: d
              , x: Pixel.x sCoords
              , y: Pixel.y sCoords
@@ -335,11 +337,12 @@ meteoriteId (Meteorite m) =
   m.class <> show m.coordinates <> m.mass <> m.name <> show m.year
 
 -- | Convert the coordinates of a meteorite into LngLat
-meteoriteLngLat :: Meteorite -> LngLat
-meteoriteLngLat (Meteorite m) = LngLat.make $ unsafePartial fromJust $
-  {lng: _, lat: _}
+meteoriteLngLat :: Meteorite -> {lng :: Number, lat :: Number, z :: Number}
+meteoriteLngLat (Meteorite m) = unsafePartial fromJust $
+  {lng: _, lat: _, z: _}
     <$> m.coordinates !! 0
     <*> m.coordinates !! 1
+    <*> Just 0.0
 
 -- | Fetch the meteorite data from the data directory.
 getMeteoriteData :: Aff (Array Meteorite)

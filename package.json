@@ -10,7 +10,7 @@
     "examples-icon:serve": "serve examples/icon/dist"
   },
   "dependencies": {
-    "deck.gl": "^8.2.8",
+    "deck.gl": "^8.3.14",
     "react": "^16.13.1"
   },
   "devDependencies": {

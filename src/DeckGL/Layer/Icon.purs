@@ -2,7 +2,6 @@ module DeckGL.Layer.Icon where
 
 import DeckGL (Layer)
 import DeckGL.BaseProps (BaseProps)
-import WebMercator.LngLat (LngLat)
 import Foreign.Object (Object)
 
 foreign import defaultIconProps :: forall d . IconLayerProps d
@@ -33,7 +32,7 @@ type IconLayerProps d = BaseProps
   ( iconAtlas :: String
   , iconMapping :: IconMapping
   , sizeScale :: Number
-  , getPosition :: IconData d -> LngLat
+  , getPosition :: IconData d -> { lng :: Number, lat :: Number, z :: Number }
   , getSize :: IconData d -> Number
   , getIcon :: IconData d -> String
   , getColor :: IconData d -> Array Number
