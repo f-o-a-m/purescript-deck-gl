@@ -26,7 +26,7 @@ let additions =
       , repo =
           "https://github.com/f-o-a-m/purescript-web-mercator.git"
       , version =
-          "master"
+          "polymake"
       }
   }
 
