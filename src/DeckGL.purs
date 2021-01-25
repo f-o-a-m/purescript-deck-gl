@@ -39,6 +39,7 @@ type MapPropsR r =
   , onClick :: EffectFn2 (Nullable LayerInfo) MouseEvent Unit
   , onHover :: EffectFn2 (Nullable LayerInfo) MouseEvent Unit
   , viewState :: Record (ViewportR ())
+  , getTooltip :: LayerInfo -> Nullable String
   | r
   )
 
