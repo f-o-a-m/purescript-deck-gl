@@ -1,4 +1,4 @@
-module DeckGL.Layer.Trip where
+module DeckGL.Layer.Trips where
 
 import DeckGL (Layer)
 import DeckGL.BaseProps (BaseProps)
