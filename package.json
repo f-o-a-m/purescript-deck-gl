@@ -3,7 +3,7 @@
   "scripts": {
     "build": "spago build",
     "//": "",
-    "examples-icon": "yarn examples-icon:bundle-app && yarn examples-icon:browserify",
+    "examples-icon": "npm run examples-icon:bundle-app && npm run examples-icon:browserify",
     "examples-icon:build": "spago --config examples-icon-spago.dhall build",
     "examples-icon:bundle-app": "spago --config examples-icon-spago.dhall bundle-app --to examples/icon/dist/bundle.js",
     "examples-icon:browserify": "browserify examples/icon/dist/bundle.js -o examples/icon/dist/bundle.js",
