@@ -9,5 +9,6 @@ package-lock.json
 /.purs*
 /.psa*
 /.spago
+/.vscode
 yarn-error.log
 yarn.lock
