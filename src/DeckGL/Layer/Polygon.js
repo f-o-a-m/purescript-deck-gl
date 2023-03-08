@@ -1,7 +1,7 @@
-var DeckGL = require("deck.gl");
+import { PolygonLayer } from 'deck.gl';
 
-exports.makePolygonLayer = function (props) {
-    return new DeckGL.PolygonLayer(props);
+export const makePolygonLayer = function (props) {
+    return new PolygonLayer(props);
 };
 
-exports.defaultPolygonProps = DeckGL.PolygonLayer.defaultProps;
+export const defaultPolygonProps = PolygonLayer.defaultProps;

@@ -5,6 +5,7 @@ import Prelude
 import Affjax (defaultRequest, get, printError, request) as Affjax
 import Affjax.RequestHeader (RequestHeader(..))
 import Affjax.ResponseFormat (json)
+import Affjax.Web (driver) as AffjaxWeb
 import Control.Monad.Error.Class (throwError)
 import Control.Monad.Reader (ReaderT, runReaderT, ask)
 import Control.Monad.State (execState, State, modify, get)
@@ -15,6 +16,7 @@ import Data.Int (floor, toNumber)
 import Data.Map as Map
 import Data.Maybe (fromJust, fromMaybe)
 import Data.Newtype (class Newtype, unwrap)
+import Data.Number (pow)
 import Data.Set as S
 import Data.Traversable (for_)
 import Data.Tuple (Tuple(..))
@@ -27,7 +29,6 @@ import Effect.Exception (error)
 import Effect.Uncurried (mkEffectFn1)
 import Foreign.Object as Object
 import MapGL as MapGL
-import Math (pow)
 import Partial.Unsafe (unsafePartial)
 import RBush as RBush
 import React as R
@@ -155,7 +156,7 @@ instance decodeJsonIconEntry :: A.DecodeJson IconEntry where
 -- | right icon.
 buildIconMapping :: Aff Icon.IconMapping
 buildIconMapping = do
-  resp <- Affjax.get json iconUrl
+  resp <- Affjax.get AffjaxWeb.driver json iconUrl
   (icons :: Array IconEntry) <- case resp of
     Left e -> throwError $ error $ Affjax.printError e
     Right {body} -> either (throwError <<< error <<< show) pure $ A.decodeJson body
@@ -350,7 +351,7 @@ getMeteoriteData = do
                                               ]
                                   , responseFormat = json
                                   }
-  resp <- Affjax.request req
+  resp <- Affjax.request AffjaxWeb.driver req
   case resp of
     Left e -> throwError <<< error $ Affjax.printError e
     Right {body} -> either (throwError <<< error <<< show) pure $ A.decodeJson body

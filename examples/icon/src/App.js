@@ -1,7 +1,8 @@
 'use strict';
+import { main } from './Main.purs';
 
-require('./Main.purs').main();
+main();
 
-if (module.hot) {
+if (module && module.hot) {
   module.hot.accept();
 }

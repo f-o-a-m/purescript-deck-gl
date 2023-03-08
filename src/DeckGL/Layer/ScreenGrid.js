@@ -1,7 +1,7 @@
-var DeckGL = require('deck.gl');
+import { ScreenGridLayer } from 'deck.gl';
 
-exports.makeScreenGridLayer = function (props) {
-    return new DeckGL.ScreenGridLayer(props);
+export const makeScreenGridLayer = function (props) {
+    return new ScreenGridLayer(props);
 };
 
-exports.defaultScreenGridProps = DeckGL.ScreenGridLayer.defaultProps;
+export const defaultScreenGridProps = ScreenGridLayer.defaultProps;

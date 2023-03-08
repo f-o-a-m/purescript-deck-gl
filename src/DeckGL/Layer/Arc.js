@@ -1,7 +1,7 @@
-var DeckGL = require('deck.gl');
+import { ArcLayer } from 'deck.gl';
 
-exports.makeArcLayer = function (props) {
-    return new DeckGL.ArcLayer(props);
+export const makeArcLayer = function (props) {
+    return new ArcLayer(props);
 };
 
-exports.defaultArcProps = DeckGL.ArcLayer.defaultProps;
+export const defaultArcProps = ArcLayer.defaultProps;

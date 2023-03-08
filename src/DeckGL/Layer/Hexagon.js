@@ -1,7 +1,7 @@
-var DeckGL = require('deck.gl');
+import { HexagonLayer } from 'deck.gl';
 
-exports.makeHexagonLayer = function (props) {
-    return new DeckGL.HexagonLayer(props);
+export const makeHexagonLayer = function (props) {
+    return new HexagonLayer(props);
 };
 
-exports.defaultHexagonProps = DeckGL.HexagonLayer.defaultProps;
+export const defaultHexagonProps = HexagonLayer.defaultProps;

@@ -1,7 +1,7 @@
-var DeckGL = require('deck.gl');
+import { ScatterplotLayer } from 'deck.gl';
 
-exports.makeScatterplotLayer = function (props) {
-    return new DeckGL.ScatterplotLayer(props);
+export const makeScatterplotLayer = function (props) {
+    return new ScatterplotLayer(props);
 };
 
-exports.defaultScatterplotProps = DeckGL.ScatterplotLayer.defaultProps;
+export const defaultScatterplotProps = ScatterplotLayer.defaultProps;

@@ -1,4 +1,4 @@
-var DeckGL = require('deck.gl');
+import { DeckGL } from 'deck.gl';
 
-exports.defaultDeckGLProps = DeckGL.DeckGL.defaultProps;
-exports.deckGL = DeckGL.DeckGL;
+export const defaultDeckGLProps = DeckGL.defaultProps;
+export const deckGL = DeckGL;

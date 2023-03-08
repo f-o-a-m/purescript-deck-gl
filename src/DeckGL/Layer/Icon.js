@@ -1,7 +1,7 @@
-var DeckGL = require('deck.gl');
+import { IconLayer } from 'deck.gl';
 
-exports.defaultIconProps = DeckGL.IconLayer.defaultProps;
+export const defaultIconProps = IconLayer.defaultProps;
 
-exports.makeIconLayer = function (props) {
-    return new DeckGL.IconLayer(props);
+export const makeIconLayer = function (props) {
+    return new IconLayer(props);
 };

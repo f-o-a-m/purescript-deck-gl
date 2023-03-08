@@ -1,6 +1,6 @@
-const RBush = require("rbush");
+import { default as RBush } from "rbush";
 
-exports.empty = function (maxInNode) {
+export const empty = function (maxInNode) {
   class MyRBush extends RBush {
     toBBox({ x, y }) { return {minX: x, minY: y, maxX: x, maxY: y}; }
     compareMinX(a, b) { return a.x - b.x; }
@@ -10,21 +10,21 @@ exports.empty = function (maxInNode) {
   return new MyRBush(maxInNode);
 };
 
-exports.insert = function (a) {
+export const insert = function (a) {
     return function (bush) {
         bush.insert(a);
         return bush;
     };
 };
 
-exports.insertMany = function (as) {
+export const insertMany = function (as) {
     return function (bush) {
         bush.load(as);
         return bush;
     };
 };
 
-exports.search = function (box) {
+export const search = function (box) {
     return function (bush) {
         return bush.search(box);
     };

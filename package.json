@@ -11,7 +11,10 @@
   },
   "dependencies": {
     "deck.gl": "^8.2.8",
-    "react": "^16.13.1"
+    "esbuild": "^0.17.11",
+    "react": "^16.13.1",
+    "serve": "^14.2.0",
+    "yarn": "^1.22.19"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",
@@ -19,7 +22,7 @@
     "bower": "^1.8.8",
     "browserify": "^16.5.2",
     "create-react-class": "^15.6.3",
-    "pulp": "^15.0.0",
+    "pulp": "^16.0.0",
     "purescript-psa": "^0.7.3",
     "rbush": "^3.0.1",
     "react-dom": "^16.13.1",
